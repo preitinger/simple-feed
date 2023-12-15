@@ -70,9 +70,7 @@ export default function Home() {
     const [today, setToday] = useState<Date | null>(null);
 
     useEffect(() => {
-        if (typeof (window) !== 'undefined') {
-            setToday(new Date());
-        }
+        setToday(new Date());
     }, [])
 
     function Today() {
@@ -145,11 +143,11 @@ export default function Home() {
                 <h3>Alle Geburtstage</h3>
                 <table>
                     <tbody>
-                    {
-                        sorted.map((bd, i) => (
-                            <BirthdayComp key={i} birthday={bd} />
-                        ))
-                    }
+                        {
+                            sorted.map((bd, i) => (
+                                <BirthdayComp key={i} birthday={bd} />
+                            ))
+                        }
                     </tbody>
                 </table>
             </div>
