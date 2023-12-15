@@ -65,6 +65,20 @@ export default function Home() {
                 name: 'Matthias',
                 date: new Date(1988, 7, 3)
             },
+        ],
+        feedEntries: [
+            {
+                header: 'Beispiel 1',
+                body: 'Lorem ipsum 1 ...\nnoch ne zeile'
+            },
+            {
+                header: 'Beispiel 2',
+                body: 'Lorem ipsum 2 ...'
+            },
+            {
+                header: 'Beispiel 3',
+                body: 'Lorem ipsum 3 ...'
+            },
         ]
     })
     const [today, setToday] = useState<Date | null>(null);
@@ -145,7 +159,7 @@ export default function Home() {
                     <tbody>
                         {
                             sorted.map((bd, i) => (
-                                <BirthdayComp key={i} birthday={bd} />
+                                <BirthdayComp key={`bd.${i}`} birthday={bd} />
                             ))
                         }
                     </tbody>
@@ -156,9 +170,19 @@ export default function Home() {
 
     return (
         <div>
+            <h1>Infos</h1>
             <Today />
             <NextBirthday />
             <AllBirthdays />
+            {
+                feedData?.feedEntries.map((e, i) => (
+                    <div key={`e.${i}`} className={`${styles.entry}`}>
+                        <h3>{e.header}</h3>
+                        <pre>{e.body}</pre>
+                    </div>
+                ))
+
+            }
         </div>
     )
 }
