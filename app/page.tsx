@@ -131,7 +131,7 @@ export default function Home() {
             <div>Noch nicht geladen ...</div>
         )
 
-        const sorted = feedData.birthdays.toSorted((a, b) => {
+        const sorted = feedData.birthdays.slice().sort((a, b) => {
             const aMon = a.date.getMonth();
             const bMon = b.date.getMonth();
             if (aMon !== bMon) return aMon - bMon;
