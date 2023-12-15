@@ -127,7 +127,11 @@ export default function Home() {
     }
 
     function AllBirthdays() {
-        const sorted = feedData?.birthdays.toSorted((a, b) => {
+        if (feedData == null) return (
+            <div>Noch nicht geladen ...</div>
+        )
+
+        const sorted = feedData.birthdays.toSorted((a, b) => {
             const aMon = a.date.getMonth();
             const bMon = b.date.getMonth();
             if (aMon !== bMon) return aMon - bMon;
@@ -142,7 +146,7 @@ export default function Home() {
                 <table>
                     <tbody>
                     {
-                        sorted?.map((bd, i) => (
+                        sorted.map((bd, i) => (
                             <BirthdayComp key={i} birthday={bd} />
                         ))
                     }
