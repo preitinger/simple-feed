@@ -12,5 +12,5 @@ export async function GET(req: NextRequest, {params}: { params: Params}): Promis
     console.log('params', params);
     console.log('id', id);
     if (typeof(id) !== 'string') return NextResponse.json(null);
-    return NextResponse.json((await loadFeedData(params.id))?.data ?? null);
+    return NextResponse.json((await loadFeedData(params.id)) ?? null);
 }

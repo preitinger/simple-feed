@@ -12,9 +12,14 @@ export interface FeedDataInDb {
     passwd: string;
 }
 
-export async function loadFeedData(id: string): Promise<FeedDataInDb | null> {
+export async function loadFeedData(id: string): Promise<FeedData | null> {
     const client = await clientPromise;
-    return await client.db('simple-feed').collection<FeedDataInDb>('feeds').findOne({ _id: id });
+    return (await client.db('simple-feed').collection<FeedDataInDb>('feeds').findOne({
+         _id: id }, {
+            projection: {
+                data: 1
+            }
+         }))?.data ?? null;
 }
 
 /**
