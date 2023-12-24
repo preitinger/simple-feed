@@ -15,10 +15,13 @@ interface ChangeData {
 const timeoutFunc = (changeDataRef: MutableRefObject<ChangeData | null>, setNotesHint: (hint: string) => void) => {
     if (changeDataRef.current == null) throw new Error('changeDataRef.current null');
     const notesStr = localStorage.getItem('notes');
+    console.log('notes from localStorage in timeoutFunc', notesStr);
     const notes: string[] = notesStr == null ? [] : JSON.parse(notesStr);
     notes.push(changeDataRef.current.lastVal);
     if (notes.length > 8) notes.splice(0, notes.length - 8);
-    localStorage.setItem('notes', JSON.stringify(notes));
+    const newNotesStr = JSON.stringify(notes);
+    localStorage.setItem('notes', newNotesStr);
+    console.log('stored new notes', newNotesStr);
     let passwd = localStorage.getItem('passwd');
     if (passwd == null) {
         passwd = prompt('Passwort für diesen Feed');

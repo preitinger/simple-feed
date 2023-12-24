@@ -608,6 +608,18 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             } else {
                 console.log('feedJson', feedJson);
                 const feed: FeedData = JSON.parse(feedJson);
+                {
+                    const localNotesStr = localStorage.getItem('notes');
+                    console.log('localNotesStr [1]', localNotesStr);
+                    if (localNotesStr != null) {
+                        const localNotes: string[] = JSON.parse(localNotesStr);
+                        if (localNotes.length > 0) {
+                            const newLocalNotes = localNotes[localNotes.length - 1];
+                            feed.notes = newLocalNotes;
+                        }
+                    }
+    
+                }
                 setState(s => ({
                     ...s,
                     feedData: feed
@@ -622,6 +634,23 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                     if (feed == null) {
                         return;
                     }
+                    {
+                        const localNotesStr = localStorage.getItem('notes');
+                        console.log('localNotesStr [2]', localNotesStr);
+                        if (localNotesStr != null) {
+                            const localNotes: string[] = JSON.parse(localNotesStr);
+                            if (localNotes.length > 0) {
+                                const newLocalNotes = localNotes[localNotes.length - 1];
+                                if (newLocalNotes != feed.notes) {
+                                    console.log('trick-onNotesChange mit newLocalNotes=', newLocalNotes)
+                                    if (onNotesChange != null) onNotesChange(feed._id, newLocalNotes);
+                                }
+                                feed.notes = newLocalNotes;
+                            }
+                        }
+        
+                    }
+                        
                     localStorage.setItem('feed', JSON.stringify(feed));
                     setState(s => ({
                         ...s,
