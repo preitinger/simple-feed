@@ -75,6 +75,7 @@ export interface FeedEntry {
 export default interface FeedData {
     _id: string;
     name: string;
+    notes: string;
     birthdays: Birthday[];
     feedEntries: FeedEntry[];
 }

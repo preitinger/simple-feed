@@ -83,13 +83,17 @@ export default function Admin() {
 
     function onEdit() {
         const feed = localStorage.getItem('feed');
+        let passwd = localStorage.getItem('passwd');
+
         let initialVal = '';
         if (feed != null) {
             initialVal = JSON.parse(feed)._id;
+        } else {
+            initialVal = 'Georg_Reitinger' // TODO auskommentieren, 
         }
         const id = prompt('Feed ID', initialVal);
         if (id == null) return;
-        const passwd = prompt('Passwort fuer Feed ' + id);
+        passwd = prompt('Passwort fuer Feed ' + id, passwd ?? '');
         if (passwd == null) return;
 
         setAdminState({
@@ -99,7 +103,7 @@ export default function Admin() {
         const loopEditStart = (force: boolean) => {
             const editStartReq: EditStartReq = {
                 id: id,
-                passwd: passwd,
+                passwd: passwd ?? '',
                 force: force
             }
             fetch('/api/admin/editStart', {
@@ -142,6 +146,7 @@ export default function Admin() {
                             data: editStartResp.data
                         })
                         localStorage.setItem('feed', JSON.stringify(editStartResp.data));
+                        if (passwd != null) localStorage.setItem('passwd', passwd);
                         break;
                 }
     

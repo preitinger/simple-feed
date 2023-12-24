@@ -22,6 +22,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddFeedResp>>
     const newFeedData: FeedData = {
         _id: addFeedReq.id,
         name: addFeedReq.id,
+        notes: '',
         birthdays: [],
         feedEntries: []
     }
@@ -31,7 +32,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddFeedResp>>
         editingSince: null,
         data: newFeedData,
         passwd: transformPasswd('editor', addFeedReq.feedPasswd),
-        archive: []
+        feedArchive: [],
+        notesArchive: []
     }
     try {
         const insertRes = await col.insertOne(newFeed);

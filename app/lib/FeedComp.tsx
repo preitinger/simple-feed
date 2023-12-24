@@ -337,6 +337,37 @@ function NextBirthday(props: NextBirthdayProps) {
     )
 }
 
+interface NotesProps {
+    feedId?: string;
+    notes: string;
+    onChange?: (feedId: string, s: string) => void;
+    onKeyDown?: () => void;
+    hint?: string;
+}
+
+function Notes(props: NotesProps) {
+
+    return (
+        <div className={`${styles.entry} ${styles.notesContainer}`}>
+            <h3>Notizen</h3>
+            <textarea value={props.notes} className={styles.notes} onChange={(e) => {
+                const newNotes = e.target.value;
+                if (props.onChange != null) {
+                    if (props.feedId == null) throw new Error('onChange defined, but not feedId');
+                    props.onChange(props.feedId, newNotes);
+                }
+            }} onKeyDown={(e) => { if (props.onKeyDown) props.onKeyDown(); }} />
+            {
+                <div className={styles.dirtyHint}>
+                    {
+                        <span>{props.hint}</span>
+                    }
+                </div>
+            }
+        </div>
+    )
+}
+
 
 interface DateMonth {
     /**
@@ -455,13 +486,17 @@ interface FeedCompProps {
     onNotFound?: () => void;
     onAbort?: () => void;
     onSave?: (feed: FeedData) => void;
+    onNotesChange?: (feedId: string, newNotes: string) => void;
+    onNotesKeyDown?: () => void;
+    notesHint?: string;
 }
 
-export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave }: FeedCompProps) {
+export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave, onNotesChange, onNotesKeyDown, notesHint }: FeedCompProps) {
     const [state, setState] = useState<State>({
         feedData: {
             _id: 'Georg Reitinger',
             name: 'Georg Reitinger',
+            notes: '',
             birthdays: [
                 {
                     name: 'Irmgard',
@@ -608,11 +643,14 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave 
 
             const id = prompt('Feed id', '');
             if (id == null) return;
+            const passwd = prompt('Feed Passwort', '');
+            if (passwd == null) return;
             fetchFeed(id, abortControllerRef.current?.signal).then((feed: FeedData | null) => {
                 if (feed == null) {
                     startSetup();
                 } else {
                     localStorage.setItem('feed', JSON.stringify(feed));
+                    localStorage.setItem('passwd', passwd); // fuer updateNotes in app/page.tsx
                     setState(s => ({
                         ...s,
                         feedData: feed
@@ -1029,6 +1067,22 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave 
             }
             <Today />
             <NextBirthday admin={admin ?? false} feedData={feedData} editState={editState} editedText={editedText} setEditedText={setEditedText} today={today} />
+            <Notes feedId={feedData?._id} hint={notesHint} notes={feedData?.notes ?? ''} onChange={(feedId: string, val: string) => {
+                setState(s => {
+                    if (s.feedData == null) return s;
+                    const newState: State = {
+                        ...s,
+                        feedData: {
+                            ...s.feedData,
+                            notes: val
+                        }
+                    }
+                    return newState;
+                })
+                if (onNotesChange != null) onNotesChange(feedId, val);
+            }} onKeyDown={() => {
+                if (onNotesKeyDown != null) onNotesKeyDown();
+            }} />
             <AllBirthdays
                 ref={editedTextRef}
                 feedData={feedData}

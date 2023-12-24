@@ -27,7 +27,7 @@ test.skip('test update for editStart', async () => {
             feedEntries: [],
             name: 'bla',
         },
-        archive: [],
+        feedArchive: [],
         editingSince: new Date(Date.now()),
         passwd: transformPasswd('editor', '123'),
         version: 1
@@ -113,7 +113,7 @@ test.skip('editingSince null', async () => {
             feedEntries: [],
             name: 'bla',
         },
-        archive: [],
+        feedArchive: [],
         editingSince: null,
         passwd: transformPasswd('editor', '123'),
         version: 1
@@ -174,7 +174,7 @@ test.skip('editingSince old', async () => {
             feedEntries: [],
             name: 'bla',
         },
-        archive: [],
+        feedArchive: [],
         editingSince: new Date(Date.now() - 60 * 61 * 1000 - 1),
         passwd: transformPasswd('editor', '123'),
         version: 1
@@ -236,7 +236,7 @@ test.skip('editingSince new', async () => {
             feedEntries: [],
             name: 'bla',
         },
-        archive: [],
+        feedArchive: [],
         editingSince: new Date(dateLimit + 60 * 60 * 1000),
         passwd: transformPasswd('editor', '123'),
         version: 1

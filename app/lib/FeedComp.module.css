@@ -43,3 +43,20 @@
 .testBorder {
     border: 1px solid red;
 }
+
+.notesContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.notes {
+    height: 400px;
+    border-radius: 1em;
+    padding: 1em;
+}
+.dirtyHint {
+    color: lightgray;
+    font-size: xx-small;
+    padding: 1em;
+    height: 1em;
+}
