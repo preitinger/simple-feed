@@ -349,7 +349,7 @@ function Notes(props: NotesProps) {
 
     return (
         <div className={`${styles.entry} ${styles.notesContainer}`}>
-            <h3>Notizen</h3>
+            <h3>Notizen (Erst Internetkabel am PC anstecken, dann kann man es ändern.)</h3>
             <textarea value={props.notes} className={styles.notes} onChange={(e) => {
                 const newNotes = e.target.value;
                 if (props.onChange != null) {
