@@ -694,6 +694,16 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
         }
     }, [settingUp])
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setToday(new Date());
+        }, 1000)
+
+        return () => {
+            clearInterval(interval);
+        }
+    }, [])
+
     useLayoutEffect(() => {
         if (editedTextRef.current != null) {
             editedTextRef.current.focus();
