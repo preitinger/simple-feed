@@ -145,7 +145,11 @@ export default function Admin() {
                             editedId: id,
                             data: editStartResp.data
                         })
-                        localStorage.setItem('feed', JSON.stringify(editStartResp.data));
+                        try {
+                            localStorage.setItem('feed', JSON.stringify(editStartResp.data));
+                        } catch (reason) {
+                            console.log(reason);
+                        }
                         if (passwd != null) localStorage.setItem('passwd', passwd);
                         break;
                 }

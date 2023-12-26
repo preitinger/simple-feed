@@ -61,6 +61,11 @@
     height: 1em;
 }
 .img {
-    width: 100%;
+    /* width: 100%; */
+    width: auto;
     height: auto;
+}
+.remainingSpace {
+    font-size: small;
+    color: gray;
 }

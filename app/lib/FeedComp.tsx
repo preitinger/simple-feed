@@ -6,6 +6,7 @@ import { ChangeEventHandler, forwardRef, useCallback, useEffect, useLayoutEffect
 import FeedData, { Birthday, BirthdayDate, FeedEntry, birthdayDifference, compareBirthday, formatBirthdayDate, parseBirthdayDate } from './FeedData'
 import { EditStartReq } from './admin/editStart';
 import { useRouter } from 'next/navigation';
+import { resizeImage } from './image';
 
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
@@ -299,7 +300,8 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
                                 //     alert('Bitte keine Dateien größer als 128kB.');
                                 //     return;
                                 // }
-                                const newImg = await blobToBase64(file);
+                                // const newImg = await blobToBase64(file);
+                                const newImg = await resizeImage(file, 400)
                                 props.onImgChanged(newImg);
                             }
                         }} />
@@ -589,6 +591,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             dirty: false,
         }
     })
+    const [usedSpace, setUsedSpace] = useState<number>(0);
     const [editedText, setEditedText] = useState<string>('');
     const [today, setToday] = useState<Date | null>(null);
     const [settingUp, setSettingUp] = useState<boolean>(false);
@@ -643,7 +646,12 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                     }
                     return;
                 }
-                localStorage.setItem('feed', JSON.stringify(feed));
+                try {
+                    localStorage.setItem('feed', JSON.stringify(feed));
+                } catch (reason) {
+                    console.log(reason);
+                }
+                setUsedSpace(localStorage.length);
                 setState(s => ({
                     ...s,
                     feedData: feed
@@ -702,7 +710,11 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
 
                     }
 
-                    localStorage.setItem('feed', JSON.stringify(feed));
+                    try {
+                        localStorage.setItem('feed', JSON.stringify(feed));
+                    } catch (reason) {
+                        console.log(reason);
+                    }
                     setState(s => ({
                         ...s,
                         feedData: feed
@@ -729,7 +741,11 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                 if (feed == null) {
                     startSetup();
                 } else {
-                    localStorage.setItem('feed', JSON.stringify(feed));
+                    try {
+                        localStorage.setItem('feed', JSON.stringify(feed));
+                    } catch (reason) {
+                        console.log(reason);
+                    }
                     localStorage.setItem('passwd', passwd); // fuer updateNotes in app/page.tsx
                     setState(s => ({
                         ...s,
@@ -749,6 +765,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
         const interval = setInterval(() => {
             setToday(new Date());
         }, 1000)
+        setUsedSpace(localStorage.length);
 
         return () => {
             clearInterval(interval);
@@ -1229,6 +1246,9 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                 ))
 
             }
+            <div className={styles.remainingSpace}>
+                Used space: {usedSpace}
+            </div>
         </div>
     )
 }
