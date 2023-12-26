@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
     manifest: "/manifest.json", // we are accessing our manifest file here
-    title: 'Create Next App',
+    title: 'Simple Feed',
     description: 'Simple feed for handicapped people',
 }
 
