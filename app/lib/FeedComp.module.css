@@ -60,3 +60,7 @@
     padding: 1em;
     height: 1em;
 }
+.img {
+    width: 100%;
+    height: auto;
+}

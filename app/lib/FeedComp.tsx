@@ -280,7 +280,7 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
 
             {
                 entry?.imgData != null &&
-                <img src={entry?.imgData} alt='Bild' />
+                <img src={entry?.imgData} alt='Bild' className={styles.img} />
             }
             {
                 props.admin && entry?.imgData != null &&
