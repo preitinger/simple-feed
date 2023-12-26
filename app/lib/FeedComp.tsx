@@ -7,6 +7,24 @@ import FeedData, { Birthday, BirthdayDate, FeedEntry, birthdayDifference, compar
 import { EditStartReq } from './admin/editStart';
 import { useRouter } from 'next/navigation';
 
+
+const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = function () {
+            if (typeof (reader.result) === 'string') {
+                const res: string = reader.result
+                resolve(res);
+            } else {
+                reject({
+                    error: 'Unexpected type of result: ' + typeof (reader.result)
+                })
+            }
+        };
+    });
+};
+
 interface InputProps {
     value: string;
     onChange: ChangeEventHandler<HTMLInputElement>;
@@ -233,7 +251,11 @@ const AllBirthdays = forwardRef<HTMLInputElement | null, AllBirthdaysProps>(func
     )
 })
 
-const FeedEntryComp = forwardRef<HTMLInputElement | null, EditProps>(function FeedEntryComp(props, ref) {
+type FeedEntryProps = EditProps & {
+    onImgChanged: (newImgData: string) => void;
+}
+
+const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(function FeedEntryComp(props, ref) {
     const entry = props.feedData?.feedEntries[props.idx];
     return (
         <div className={`${styles.entry} ${props.editState.type === 'moveEntry' && props.editState.index === props.idx ? styles.entryMoving : ''}`}>
@@ -255,6 +277,36 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, EditProps>(function Fe
                         <h3>{entry?.header}</h3>
                     </>
             }
+
+            {
+                entry?.imgData != null &&
+                <img src={entry?.imgData} alt='Bild' />
+            }
+            {
+                props.admin && entry?.imgData != null &&
+                <button>Bild entfernen</button>
+            }
+            {
+                props.admin && (
+                    <div>
+                        Bild hochladen:
+                        <input type='file' onChange={async (e) => {
+                            const files = e.target.files;
+                            if (files != null && files.length >= 1) {
+                                const file: File | null = files.item(0)
+                                if (file == null) return
+                                // if (file.size > (128 << 10)) {
+                                //     alert('Bitte keine Dateien größer als 128kB.');
+                                //     return;
+                                // }
+                                const newImg = await blobToBase64(file);
+                                props.onImgChanged(newImg);
+                            }
+                        }} />
+                    </div>
+                )
+            }
+
             {
                 props.editState.type === 'entry' && props.editState.idx === props.idx && props.editState.editing === 'body'
                     ? <textarea id='editingTa' key='editingTa' value={props.editedText} onChange={(e) => {
@@ -270,7 +322,6 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, EditProps>(function Fe
                             props.onEnter();
                         }}
                     />
-
                     :
                     <pre>{entry?.body}</pre>
             }
@@ -381,9 +432,9 @@ interface DateMonth {
 }
 
 // /**
-//  * 
-//  * @param today 
-//  * @param nextDateMonth 
+//  *
+//  * @param today
+//  * @param nextDateMonth
 //  * @returns difference in ms between today and the date according to nextDateMonth either in the same year as today or the next year depending
 //  * on the fact if the date of the current year lies in the past or in the future.
 //  */
@@ -618,7 +669,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                             feed.notes = newLocalNotes;
                         }
                     }
-    
+
                 }
                 setState(s => ({
                     ...s,
@@ -648,9 +699,9 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                                 feed.notes = newLocalNotes;
                             }
                         }
-        
+
                     }
-                        
+
                     localStorage.setItem('feed', JSON.stringify(feed));
                     setState(s => ({
                         ...s,
@@ -820,8 +871,8 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                             feedData: {
                                 ...feedData,
                                 feedEntries: feedData.feedEntries.map((e, i) => i === editState.idx ? ({
+                                    ...e,
                                     header: editedText,
-                                    body: e.body
                                 }) : e)
                             },
                             editState: {
@@ -839,7 +890,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                             feedData: {
                                 ...feedData,
                                 feedEntries: feedData.feedEntries.map((e, i) => i === editState.idx ? ({
-                                    header: e.header,
+                                    ...e,
                                     body: editedText
                                 }) : e)
                             }, editState: {
@@ -1155,6 +1206,25 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                         onEdit={onEntryEdit(i)}
                         onDelete={onEntryDelete(i)}
                         onMove={onEntryMove(i)}
+                        onImgChanged={(newImg) => {
+                            if (state.feedData == null) return;
+                            setState({
+                                ...state,
+                                feedData: {
+                                    ...state.feedData,
+                                    feedEntries: state.feedData.feedEntries.map((e, i1) => (
+                                        i1 === i ? {
+                                            ...e,
+                                            imgData: newImg
+                                        } : e
+                                    ))
+                                },
+                                editState: {
+                                    ...state.editState,
+                                    dirty: true
+                                }
+                            })
+                        }}
                     />
                 ))
 

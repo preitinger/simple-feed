@@ -69,6 +69,7 @@ export function compareBirthday(a: Birthday, b: Birthday): number {
 
 export interface FeedEntry {
     header: string;
+    imgData?: string;
     body: string;
 }
 
