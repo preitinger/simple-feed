@@ -664,7 +664,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             console.log('aborting effect when today1', today1);
             abortController.abort();
         }
-    }, [admin, editedId, onNotFound])
+    }, [admin, editedId, onNotFound, onNotesChange])
 
     useEffect(() => {
         function startSetup() {
