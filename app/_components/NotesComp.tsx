@@ -81,6 +81,10 @@ export default function NotesComp(props: NotesProps) {
         }).finally(() => {
             setLoading(false);
         })
+
+        return () => {
+            abortController.abort();
+        }
     }, [props.feedId])
 
     const setMyTimeout = (passwd: string) => setTimeout(() => {
