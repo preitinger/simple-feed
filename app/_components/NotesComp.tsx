@@ -52,8 +52,6 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
         state: 'fetching'
     });
 
-    console.log('req', req);
-
     fetch('/api/notes/update', {
         method: 'POST',
         body: JSON.stringify(req),
@@ -96,7 +94,6 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
 
 const setMyTimeout = (id: string, passwd: string, getChangeData: () => ChangeData, setChangeData: (changeData: ChangeData) => void, setHint: (hint: string) => void) => setTimeout(() => {
     const notesListStr = localStorage.getItem('notes');
-    console.log('notes from localStorage in timeoutFunc', notesListStr);
     const notesList: string[] = notesListStr == null ? [] : JSON.parse(notesListStr);
     const changeRefCurrent = getChangeData()
     if (changeRefCurrent.state !== 'typing') { 
@@ -106,7 +103,6 @@ const setMyTimeout = (id: string, passwd: string, getChangeData: () => ChangeDat
     if (notesList.length > 8) notesList.splice(0, notesList.length - 8);
     const newNotesListStr = JSON.stringify(notesList);
     localStorage.setItem('notes', newNotesListStr);
-    console.log('stored new notes', newNotesListStr);
 
     if (notesList.length === 0) return;
 
@@ -120,6 +116,7 @@ export default function NotesComp(props: NotesProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const changeRef = useRef<ChangeData>(initialChangeData);
 
+
     useEffect(() => {
         let aborted = false;
         const passwd = organizePasswd(props.feedId);
@@ -132,19 +129,20 @@ export default function NotesComp(props: NotesProps) {
         }
         {
             const notesFromStorageStr = localStorage.getItem('notes');
-            if (notesFromStorageStr == null) return;
-            const notesList = JSON.parse(notesFromStorageStr);
-            if (notesList.length > 0) {
-                setNotes(notesList[notesList.length - 1]);
-                sendUpdate(props.feedId, passwd, notesList, () => {
-                    return changeRef.current;
-                }, (changeData: ChangeData) => {
-                    changeRef.current = changeData
-                }, (hint: string) => {
-                    setHint(hint);
-                });
-                setLoading(false);
-                return;
+            if (notesFromStorageStr != null) {
+                const notesList = JSON.parse(notesFromStorageStr);
+                if (notesList.length > 0) {
+                    setNotes(notesList[notesList.length - 1]);
+                    sendUpdate(props.feedId, passwd, notesList, () => {
+                        return changeRef.current;
+                    }, (changeData: ChangeData) => {
+                        changeRef.current = changeData
+                    }, (hint: string) => {
+                        setHint(hint);
+                    });
+                    setLoading(false);
+                    return;
+                }
             }
         }
         fetch('/api/notes/load', {

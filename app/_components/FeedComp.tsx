@@ -516,46 +516,8 @@ interface FeedCompProps {
 
 export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave, onNotesChange, onNotesKeyDown, notesHint }: FeedCompProps) {
     const [state, setState] = useState<State>({
-        feedData: {
-            _id: 'Georg Reitinger',
-            name: 'Georg Reitinger',
-            birthdays: [
-                {
-                    name: 'Irmgard',
-                    date: { year: 1955, month: 5, date: 31 }
-                },
-                {
-                    name: 'Peter',
-                    date: { year: 1977, month: 6, date: 25 }
-                },
-                {
-                    name: 'Georg',
-                    date: { year: 1979, month: 1, date: 23 }
-                },
-                {
-                    name: 'Elisabeth',
-                    date: { year: 1980, month: 9, date: 4 }
-                },
-                {
-                    name: 'Matthias',
-                    date: { year: 1988, month: 8, date: 3 }
-                },
-            ],
-            feedEntries: [
-                {
-                    header: 'Beispiel 1',
-                    body: 'Lorem ipsum 1 ...\nnoch ne zeile'
-                },
-                {
-                    header: 'Beispiel 2',
-                    body: 'Lorem ipsum 2 ...'
-                },
-                {
-                    header: 'Beispiel 3',
-                    body: 'Lorem ipsum 3 ...'
-                },
-            ]
-        }, editState: {
+        feedData: null,
+        editState: {
             type: 'none',
             dirty: false,
         }
