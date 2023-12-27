@@ -40,6 +40,80 @@ function organizePasswd(id: string) {
     return passwd;
 }
 
+
+function sendUpdate(id: string, passwd: string, notesList: string[], getChangeData: () => ChangeData, setChangeData: (changeData: ChangeData) => void, setHint: (hint: string) => void): void {
+    const req: UpdateNotesReq = {
+        feedId: id,
+        passwd: passwd,
+        newNotesList: notesList
+    }
+
+    setChangeData({
+        state: 'fetching'
+    });
+
+    console.log('req', req);
+
+    fetch('/api/notes/update', {
+        method: 'POST',
+        body: JSON.stringify(req),
+    }).then(r => r.json()).then((res: UpdateNotesResp) => {
+        const changeDataCurrent = getChangeData();
+        switch (res.type) {
+            case 'success':
+                switch (changeDataCurrent.state) {
+                    case 'fetching':
+                        changeDataCurrent.state = 'idle';
+                        localStorage.removeItem('notes');
+                        setHint('');
+                        break;
+                    case 'typingWhileFetching':
+                        localStorage.removeItem('notes');
+                        setChangeData({
+                            state: 'typing',
+                            to: setMyTimeout(id, passwd, getChangeData, setChangeData, setHint),
+                            lastVal: changeDataCurrent.lastVal
+                        })
+                        setHint(hintTyping);
+                        break;
+                }
+                break;
+            case 'error':
+                alert('Error in updateNotes: ' + res.error);
+                changeDataCurrent.state = 'offlineIdle';
+                setHint(hintOfflineIdle);
+                break;
+        }
+    }).catch(reason => {
+        console.log('fetch failed', reason);
+        setChangeData({
+            state: 'offlineIdle'
+        })
+        setHint(hintOfflineIdle);
+    });
+
+}
+
+const setMyTimeout = (id: string, passwd: string, getChangeData: () => ChangeData, setChangeData: (changeData: ChangeData) => void, setHint: (hint: string) => void) => setTimeout(() => {
+    const notesListStr = localStorage.getItem('notes');
+    console.log('notes from localStorage in timeoutFunc', notesListStr);
+    const notesList: string[] = notesListStr == null ? [] : JSON.parse(notesListStr);
+    const changeRefCurrent = getChangeData()
+    if (changeRefCurrent.state !== 'typing') { 
+        throw new Error('timeout when in state ' + changeRefCurrent.state);
+    }
+    notesList.push(changeRefCurrent.lastVal.substring(0, 4000));
+    if (notesList.length > 8) notesList.splice(0, notesList.length - 8);
+    const newNotesListStr = JSON.stringify(notesList);
+    localStorage.setItem('notes', newNotesListStr);
+    console.log('stored new notes', newNotesListStr);
+
+    if (notesList.length === 0) return;
+
+    sendUpdate(id, passwd, notesList, getChangeData, setChangeData, setHint);
+}, 2000);
+
+
 export default function NotesComp(props: NotesProps) {
     const [notes, setNotes] = useState<string>('');
     const [hint, setHint] = useState<string>('');
@@ -56,11 +130,21 @@ export default function NotesComp(props: NotesProps) {
             id: props.feedId,
             passwd: passwd
         }
-        const loadFromStorage = () => {
+        {
             const notesFromStorageStr = localStorage.getItem('notes');
             if (notesFromStorageStr == null) return;
             const notesList = JSON.parse(notesFromStorageStr);
-            if (notesList.length > 0) setNotes(notesList[notesList.length - 1]);
+            if (notesList.length > 0) {
+                setNotes(notesList[notesList.length - 1]);
+                sendUpdate(props.feedId, passwd, notesList, () => {
+                    return changeRef.current;
+                }, (changeData: ChangeData) => {
+                    changeRef.current = changeData
+                }, (hint: string) => {
+                    setHint(hint);
+                });
+                return;
+            }
         }
         fetch('/api/notes/load', {
             method: 'POST',
@@ -73,14 +157,12 @@ export default function NotesComp(props: NotesProps) {
                     setNotes(res.notes);
                     break;
                 case 'error':
-                    loadFromStorage();
                     break;
             }
         }).catch(reason => {
             if (aborted) return;
             console.error('Fehler beim Laden der Notizen', reason);
             alert('Fehler beim Laden der Notizen: ' + JSON.stringify(reason));
-            loadFromStorage();
         }).finally(() => {
             if (aborted) return;
             setLoading(false);
@@ -92,70 +174,6 @@ export default function NotesComp(props: NotesProps) {
         }
     }, [props.feedId])
 
-    const setMyTimeout = (passwd: string) => setTimeout(() => {
-        const notesListStr = localStorage.getItem('notes');
-        console.log('notes from localStorage in timeoutFunc', notesListStr);
-        const notesList: string[] = notesListStr == null ? [] : JSON.parse(notesListStr);
-        if (changeRef.current.state !== 'typing') { 
-            throw new Error('timeout when in state ' + changeRef.current.state);
-        }
-        notesList.push(changeRef.current.lastVal.substring(0, 4000));
-        if (notesList.length > 8) notesList.splice(0, notesList.length - 8);
-        const newNotesListStr = JSON.stringify(notesList);
-        localStorage.setItem('notes', newNotesListStr);
-        console.log('stored new notes', newNotesListStr);
-
-        if (notesList.length === 0) return;
-
-        const req: UpdateNotesReq = {
-            feedId: props.feedId,
-            passwd: passwd,
-            newNotesList: notesList
-        }
-
-        changeRef.current = {
-            state: 'fetching'
-        };
-        setHint(hintFetching);
-
-        console.log('req', req);
-
-        fetch('/api/notes/update', {
-            method: 'POST',
-            body: JSON.stringify(req),
-        }).then(r => r.json()).then((res: UpdateNotesResp) => {
-            switch (res.type) {
-                case 'success':
-                    switch (changeRef.current.state) {
-                        case 'fetching':
-                            changeRef.current.state = 'idle';
-                            localStorage.removeItem('notes');
-                            setHint('');
-                            break;
-                        case 'typingWhileFetching':
-                            localStorage.removeItem('notes');
-                            changeRef.current = {
-                                state: 'typing',
-                                to: setMyTimeout(passwd),
-                                lastVal: changeRef.current.lastVal
-                            }
-                            setHint(hintTyping);
-                            break;
-                    }
-                    break;
-                case 'error':
-                    alert('Error in updateNotes: ' + res.error);
-                    changeRef.current.state = 'offlineIdle';
-                    setHint(hintOfflineIdle);
-                    break;
-            }
-        }).catch(reason => {
-            if (changeRef.current == null) throw new Error('Illegal state: changeDataRef.current null');
-            console.log('fetch failed', reason);
-            changeRef.current.state = 'offlineIdle';
-            setHint(hintOfflineIdle);
-        });
-    }, 2000);
 
     function onChange(newNotes: string) {
         setNotes(newNotes);
@@ -163,11 +181,16 @@ export default function NotesComp(props: NotesProps) {
         const passwd = organizePasswd(props.feedId);
         if (passwd == null) return;
 
+        const getChangeData = () => changeRef.current;
+        const setChangeData = (changeData: ChangeData) => {
+            changeRef.current = changeData;
+        }
+
         switch (changeRef.current.state) {
             case 'idle':
                 changeRef.current = {
                     state: 'typing',
-                    to: setMyTimeout(passwd),
+                    to: setMyTimeout(props.feedId, passwd, getChangeData, setChangeData, setHint),
                     lastVal: newNotes
                 };
                 setHint(hintTyping);
@@ -175,14 +198,14 @@ export default function NotesComp(props: NotesProps) {
             case 'offlineIdle':
                 changeRef.current = {
                     state: 'typing',
-                    to: setMyTimeout(passwd),
+                    to: setMyTimeout(props.feedId, passwd, getChangeData, setChangeData, setHint),
                     lastVal: newNotes
                 }
                 break;
             case 'typing':
                 clearTimeout(changeRef.current.to);
                 changeRef.current.lastVal = newNotes;
-                changeRef.current.to = setMyTimeout(passwd);
+                changeRef.current.to = setMyTimeout(props.feedId, passwd, getChangeData, setChangeData, setHint);
                 break;
             case 'fetching':
                 changeRef.current = {
@@ -201,10 +224,15 @@ export default function NotesComp(props: NotesProps) {
         const passwd = organizePasswd(props.feedId);
         if (passwd == null) return;
 
+        const getChangeData = () => changeRef.current;
+        const setChangeData = (changeData: ChangeData) => {
+            changeRef.current = changeData;
+        }
+
         switch (changeRef.current.state) {
             case 'typing':
                 clearTimeout(changeRef.current.to);
-                changeRef.current.to = setMyTimeout(passwd);
+                changeRef.current.to = setMyTimeout(props.feedId, passwd, getChangeData, setChangeData, setHint);
                 break;
         }
     }
