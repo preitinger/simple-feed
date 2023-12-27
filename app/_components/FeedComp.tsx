@@ -3,10 +3,10 @@
 import Image from 'next/image'
 import styles from './FeedComp.module.css'
 import { ChangeEventHandler, forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import FeedData, { Birthday, BirthdayDate, FeedEntry, birthdayDifference, compareBirthday, formatBirthdayDate, parseBirthdayDate } from './FeedData'
-import { EditStartReq } from './admin/editStart';
+import FeedData, { Birthday, BirthdayDate, FeedEntry, birthdayDifference, compareBirthday, formatBirthdayDate, parseBirthdayDate } from '../_lib/FeedData'
+import { EditStartReq } from '../_lib/admin/editStart';
 import { useRouter } from 'next/navigation';
-import { resizeImage } from './image';
+import { resizeImage } from '../_lib/image';
 
 
 const blobToBase64 = (blob: Blob): Promise<string> => {

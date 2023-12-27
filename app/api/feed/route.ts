@@ -1,5 +1,5 @@
-import FeedData from "@/app/lib/FeedData";
-import clientPromise from "@/app/lib/mongodb";
+import FeedData from "@/app/_lib/FeedData";
+import clientPromise from "@/app/_lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
 type FeedDataOrNull = FeedData | null;

@@ -1,5 +1,5 @@
-import FeedData from "@/app/lib/FeedData";
-import { loadFeedData } from "@/app/lib/FeedDataForServer";
+import FeedData from "@/app/_lib/FeedData";
+import { loadFeedData } from "@/app/_lib/FeedDataForServer";
 import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
 

@@ -1,8 +1,8 @@
-import FeedData from "@/app/lib/FeedData";
-import { FeedDataInDb } from "@/app/lib/FeedDataForServer";
-import { AddFeedReq, AddFeedResp } from "@/app/lib/admin/addFeed";
-import { transformPasswd } from "@/app/lib/hash";
-import clientPromise from "@/app/lib/mongodb";
+import FeedData from "@/app/_lib/FeedData";
+import { FeedDataInDb } from "@/app/_lib/FeedDataForServer";
+import { AddFeedReq, AddFeedResp } from "@/app/_lib/admin/addFeed";
+import { transformPasswd } from "@/app/_lib/hash";
+import clientPromise from "@/app/_lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
 

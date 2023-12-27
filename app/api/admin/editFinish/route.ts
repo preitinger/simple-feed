@@ -1,5 +1,5 @@
-import { editFinish } from "@/app/lib/FeedDataForServer";
-import { EditFinishReq, EditFinishResp } from "@/app/lib/admin/editFinish";
+import { editFinish } from "@/app/_lib/FeedDataForServer";
+import { EditFinishReq, EditFinishResp } from "@/app/_lib/admin/editFinish";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest): Promise<NextResponse<EditFinishResp>> {

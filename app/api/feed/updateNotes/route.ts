@@ -1,4 +1,4 @@
-import { UpdateNotesResult, updateNotes } from "@/app/lib/FeedDataForServer"
+import { UpdateNotesResult, updateNotes } from "@/app/_lib/FeedDataForServer"
 import { NextRequest, NextResponse } from "next/server"
 
 export type UpdateNotesReq = {

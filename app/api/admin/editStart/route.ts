@@ -1,6 +1,6 @@
-import { editStart } from "@/app/lib/FeedDataForServer";
-import { EditStartReq, EditStartResp } from "@/app/lib/admin/editStart";
-import clientPromise from "@/app/lib/mongodb";
+import { editStart } from "@/app/_lib/FeedDataForServer";
+import { EditStartReq, EditStartResp } from "@/app/_lib/admin/editStart";
+import clientPromise from "@/app/_lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest): Promise<NextResponse<EditStartResp>> {

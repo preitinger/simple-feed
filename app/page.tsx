@@ -1,7 +1,7 @@
 'use client';
 
 import { MutableRefObject, useRef, useState } from "react";
-import FeedComp from "./lib/FeedComp";
+import FeedComp from "./_components/FeedComp";
 import { UpdateNotesReq, UpdateNotesResp } from "./api/feed/updateNotes/route";
 
 interface ChangeData {

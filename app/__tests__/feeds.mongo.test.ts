@@ -1,10 +1,10 @@
 // process.env.MONGODB_URI = 'not checked-in here for security reasons'
 
-import { transformPasswd } from "../lib/hash";
-import clientPromise from "../lib/mongodb"
+import { transformPasswd } from "../_lib/hash";
+import clientPromise from "../_lib/mongodb"
 
-import FeedData from "../lib/FeedData"
-import { FeedDataInDb } from "../lib/FeedDataForServer";
+import FeedData from "../_lib/FeedData"
+import { FeedDataInDb } from "../_lib/FeedDataForServer";
 
 
 test.skip('test update for editStart', async () => {

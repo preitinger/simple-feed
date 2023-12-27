@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from "react";
-import FeedComp from "../lib/FeedComp";
-import FeedData from "../lib/FeedData";
-import { AddFeedReq, AddFeedResp } from "../lib/admin/addFeed";
-import { EditStartReq, EditStartResp } from "../lib/admin/editStart";
-import { EditFinishReq, EditFinishResp } from "../lib/admin/editFinish";
+import FeedComp from "../_components/FeedComp";
+import FeedData from "../_lib/FeedData";
+import { AddFeedReq, AddFeedResp } from "../_lib/admin/addFeed";
+import { EditStartReq, EditStartResp } from "../_lib/admin/editStart";
+import { EditFinishReq, EditFinishResp } from "../_lib/admin/editFinish";
 
 type AdminState = {
     type: 'deciding'

@@ -1,7 +1,7 @@
-import FeedData from "@/app/lib/FeedData";
-import { FeedDataInDb } from "@/app/lib/FeedDataForServer";
-import { transformPasswd } from "@/app/lib/hash";
-import clientPromise from "@/app/lib/mongodb";
+import FeedData from "@/app/_lib/FeedData";
+import { FeedDataInDb } from "@/app/_lib/FeedDataForServer";
+import { transformPasswd } from "@/app/_lib/hash";
+import clientPromise from "@/app/_lib/mongodb";
 import { NextResponse } from "next/server";
 
 export async function GET(): Promise<NextResponse<{ done: boolean }>> {

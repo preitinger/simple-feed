@@ -1,6 +1,6 @@
 'use client';
 
-import { transformPasswd } from "@/app/lib/hash";
+import { transformPasswd } from "@/app/_lib/hash";
 import { useState } from "react";
 
 export default function TransformAdminPasswd() {
