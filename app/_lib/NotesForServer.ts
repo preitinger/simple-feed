@@ -50,11 +50,6 @@ export async function updateNotes({feedId, passwd, newNotesList}: UpdateNotesReq
     // console.log('vor sleep');
     // await sleep(3000); // TODO just for debugging
     // console.log('nach sleep');
-    await new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-            resolve();
-        }, 3000)
-    });
     
     if (newNotesList.length === 0) {
         return {
