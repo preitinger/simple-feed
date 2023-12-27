@@ -203,7 +203,8 @@ export default function NotesComp(props: NotesProps) {
     return (
         <div className={`${props.entryClass} ${styles.notesContainer}`}>
             <h3>Eigene Notizen</h3>
-            <textarea value={notes} className={styles.notes} onChange={(e) => {
+            {loading && <span>Versuche, Notizen vom Server zu laden ...</span>}
+            <textarea value={notes} readOnly={loading} className={styles.notes} onChange={(e) => {
                 const newNotes = e.target.value;
                 onChange(newNotes);
             }} onKeyDown={onKeyDown} />
