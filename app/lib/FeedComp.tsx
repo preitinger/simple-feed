@@ -402,7 +402,7 @@ function Notes(props: NotesProps) {
 
     return (
         <div className={`${styles.entry} ${styles.notesContainer}`}>
-            <h3>Notizen (Erst Internetkabel am PC anstecken, dann kann man es ändern.)</h3>
+            <h3>Eigene Notizen</h3>
             <textarea value={props.notes} className={styles.notes} onChange={(e) => {
                 const newNotes = e.target.value;
                 if (props.onChange != null) {
@@ -461,7 +461,7 @@ function dateMonthOf(d: Date): DateMonth {
 
 async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | null> {
     const url = `/api/feed/${id}`;
-    console.log('fetchFeed: url=', url);
+    // console.log('fetchFeed: url=', url);
     return fetch(url, { signal: signal }).then(
         res => res.json()
     ).then(j => {
@@ -624,12 +624,12 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
     useEffect(() => {
         console.log('useEffect: admin', admin, 'editedId', editedId);
         const today1 = new Date();
-        console.log('today1', today1.toLocaleString());
+        // console.log('today1', today1.toLocaleString());
         setToday(today1);
         const abortController = new AbortController();
         abortControllerRef.current = abortController;
 
-        console.log('typeof(localStorage)', typeof (localStorage));
+        // console.log('typeof(localStorage)', typeof (localStorage));
 
         if (admin && editedId != null) {
             fetchFeed(editedId, abortController.signal).then(feed => {
@@ -659,17 +659,17 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             })
         } else if (typeof (localStorage) !== 'undefined') {
             const feedJson = localStorage.getItem('feed');
-            console.log('feedJson1', feedJson);
-            console.log('feedJson == null', feedJson == null);
+            // console.log('feedJson1', feedJson);
+            // console.log('feedJson == null', feedJson == null);
             if (feedJson == null) {
                 setSettingUp(true);
-                console.log('settingUp to true');
+                // console.log('settingUp to true');
             } else {
-                console.log('feedJson', feedJson);
+                // console.log('feedJson', feedJson);
                 const feed: FeedData = JSON.parse(feedJson);
                 {
                     const localNotesStr = localStorage.getItem('notes');
-                    console.log('localNotesStr [1]', localNotesStr);
+                    // console.log('localNotesStr [1]', localNotesStr);
                     if (localNotesStr != null) {
                         const localNotes: string[] = JSON.parse(localNotesStr);
                         if (localNotes.length > 0) {
@@ -688,6 +688,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                     console.log('settingUp to true ([b])');
                     return;
                 }
+                // console.log('before fetchFeed');
                 fetchFeed(feed._id, abortController.signal).then(feed => {
                     if (abortController.signal.aborted) return;
                     if (feed == null) {
@@ -695,15 +696,16 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                     }
                     {
                         const localNotesStr = localStorage.getItem('notes');
-                        console.log('localNotesStr [2]', localNotesStr);
+                        // console.log('localNotesStr [2]', localNotesStr);
                         if (localNotesStr != null) {
                             const localNotes: string[] = JSON.parse(localNotesStr);
                             if (localNotes.length > 0) {
                                 const newLocalNotes = localNotes[localNotes.length - 1];
                                 if (newLocalNotes != feed.notes) {
-                                    console.log('trick-onNotesChange mit newLocalNotes=', newLocalNotes)
+                                    // console.log('trick-onNotesChange mit newLocalNotes=', newLocalNotes)
                                     if (onNotesChange != null) onNotesChange(feed._id, newLocalNotes);
                                 }
+                                // console.log('newLocalNotes', newLocalNotes);
                                 feed.notes = newLocalNotes;
                             }
                         }
@@ -727,7 +729,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             console.log('aborting effect when today1', today1);
             abortController.abort();
         }
-    }, [admin, editedId, onNotFound, onNotesChange])
+    }, [admin, editedId/* , onNotFound, onNotesChange */])
 
     useEffect(() => {
         function startSetup() {
@@ -789,7 +791,6 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
     }, [state.editState])
 
     function Today() {
-        console.log('Today(): today=', today);
         return (
             <div className={`${styles.entry}`}>
                 <h3>Heute: {today?.toLocaleString()}</h3>
@@ -1176,7 +1177,10 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             <NextBirthday admin={admin ?? false} feedData={feedData} editState={editState} editedText={editedText} setEditedText={setEditedText} today={today} />
             <Notes feedId={feedData?._id} hint={notesHint} notes={feedData?.notes ?? ''} onChange={(feedId: string, val: string) => {
                 setState(s => {
-                    if (s.feedData == null) return s;
+                    if (s.feedData == null) {
+                        console.error('feedData null on change in notes')
+                        return s;
+                    }
                     const newState: State = {
                         ...s,
                         feedData: {
