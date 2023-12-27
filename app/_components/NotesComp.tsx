@@ -11,10 +11,14 @@ export interface NotesProps {
 }
 
 type ChangeData = {
-    state: 'idle' | 'fetching' | 'typingWhileFetching' | 'offlineIdle';
+    state: 'idle' | 'fetching' | 'offlineIdle';
 } | {
     state: 'typing';
     to: NodeJS.Timeout;
+    lastVal: string;
+} | {
+    state: 'typingWhileFetching';
+    lastVal: string;
 }
 
 
@@ -63,11 +67,14 @@ export default function NotesComp(props: NotesProps) {
         })
     }, [props.feedId])
 
-    const setMyTimeout = (passwd: string, newNotes: string | null) => setTimeout(() => {
+    const setMyTimeout = (passwd: string) => setTimeout(() => {
         const notesListStr = localStorage.getItem('notes');
         console.log('notes from localStorage in timeoutFunc', notesListStr);
         const notesList: string[] = notesListStr == null ? [] : JSON.parse(notesListStr);
-        if (newNotes != null) notesList.push(newNotes.substring(0, 4000));
+        if (changeRef.current.state !== 'typing') { 
+            throw new Error('timeout when in state ' + changeRef.current.state);
+        }
+        notesList.push(changeRef.current.lastVal.substring(0, 4000));
         if (notesList.length > 8) notesList.splice(0, notesList.length - 8);
         const newNotesListStr = JSON.stringify(notesList);
         localStorage.setItem('notes', newNotesListStr);
@@ -81,7 +88,9 @@ export default function NotesComp(props: NotesProps) {
             newNotesList: notesList
         }
 
-        changeRef.current.state = 'fetching';
+        changeRef.current = {
+            state: 'fetching'
+        };
         setHint(hintFetching);
 
         console.log('req', req);
@@ -102,7 +111,8 @@ export default function NotesComp(props: NotesProps) {
                             localStorage.removeItem('notes');
                             changeRef.current = {
                                 state: 'typing',
-                                to: setMyTimeout(passwd, newNotes)
+                                to: setMyTimeout(passwd),
+                                lastVal: changeRef.current.lastVal
                             }
                             setHint(hintTyping);
                             break;
@@ -132,25 +142,32 @@ export default function NotesComp(props: NotesProps) {
             case 'idle':
                 changeRef.current = {
                     state: 'typing',
-                    to: setMyTimeout(passwd, newNotes)
+                    to: setMyTimeout(passwd),
+                    lastVal: newNotes
                 };
                 setHint(hintTyping);
                 break;
             case 'offlineIdle':
                 changeRef.current = {
                     state: 'typing',
-                    to: setMyTimeout(passwd, newNotes),
+                    to: setMyTimeout(passwd),
+                    lastVal: newNotes
                 }
                 break;
             case 'typing':
                 clearTimeout(changeRef.current.to);
-                changeRef.current.to = setMyTimeout(passwd, newNotes);
+                changeRef.current.lastVal = newNotes;
+                changeRef.current.to = setMyTimeout(passwd);
                 break;
             case 'fetching':
-                changeRef.current.state = 'typingWhileFetching';
+                changeRef.current = {
+                    state: 'typingWhileFetching',
+                    lastVal: newNotes
+                }
                 setHint(hintTypingWhileFetching);
                 break;
             case 'typingWhileFetching':
+                changeRef.current.lastVal = newNotes;
                 break;
         }
     }
@@ -162,7 +179,7 @@ export default function NotesComp(props: NotesProps) {
         switch (changeRef.current.state) {
             case 'typing':
                 clearTimeout(changeRef.current.to);
-                changeRef.current.to = setMyTimeout(passwd, null);
+                changeRef.current.to = setMyTimeout(passwd);
                 break;
         }
     }
