@@ -1,8 +1,10 @@
 import FeedData from "@/app/_lib/FeedData";
 import { FeedDataInDb } from "@/app/_lib/FeedDataForServer";
+import { NotesInDb } from "@/app/_lib/NotesForServer";
 import { AddFeedReq, AddFeedResp } from "@/app/_lib/admin/addFeed";
 import { transformPasswd } from "@/app/_lib/hash";
 import clientPromise from "@/app/_lib/mongodb";
+import { transform } from "next/dist/build/swc";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -18,22 +20,22 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddFeedResp>>
     }
 
     const client = await clientProm;
-    const col = client.db('simple-feed').collection<FeedDataInDb>('feeds');
+    const db = client.db('simple-feed');
+    const col = db.collection<FeedDataInDb>('feeds');
     const newFeedData: FeedData = {
         _id: addFeedReq.id,
         name: addFeedReq.id,
-        notes: '',
         birthdays: [],
         feedEntries: []
     }
+    const transformedPasswd = transformPasswd('editor', addFeedReq.feedPasswd);
     const newFeed: FeedDataInDb = {
         _id: addFeedReq.id,
         version: 0,
         editingSince: null,
         data: newFeedData,
-        passwd: transformPasswd('editor', addFeedReq.feedPasswd),
+        passwd: transformedPasswd,
         feedArchive: [],
-        notesArchive: []
     }
     try {
         const insertRes = await col.insertOne(newFeed);
@@ -47,6 +49,27 @@ export async function POST(req: NextRequest): Promise<NextResponse<AddFeedResp>>
             return NextResponse.json({
                 type: 'error',
                 error: 'insert did not return expected id'
+            });
+        }
+
+        const newNotesInDb: NotesInDb = {
+            _id: addFeedReq.id,
+            passwd: transformedPasswd,
+            version: 0,
+            notes: '',
+            notesArchive: []
+        }
+        const insertNotesRes = await db.collection<NotesInDb>('notes').insertOne(newNotesInDb);
+        if (!insertNotesRes.acknowledged) {
+            return NextResponse.json({
+                type: 'error',
+                error: 'insert notes was not acknowledges by MongoDB'
+            });
+        }
+        if (insertNotesRes.insertedId !== addFeedReq.id) {
+            return NextResponse.json({
+                type: 'error',
+                error: 'insert notes did not return expected id'
             });
         }
 

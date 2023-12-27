@@ -7,6 +7,7 @@ import FeedData, { Birthday, BirthdayDate, FeedEntry, birthdayDifference, compar
 import { EditStartReq } from '../_lib/admin/editStart';
 import { useRouter } from 'next/navigation';
 import { resizeImage } from '../_lib/image';
+import NotesComp from './NotesComp';
 
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
@@ -390,37 +391,6 @@ function NextBirthday(props: NextBirthdayProps) {
     )
 }
 
-interface NotesProps {
-    feedId?: string;
-    notes: string;
-    onChange?: (feedId: string, s: string) => void;
-    onKeyDown?: () => void;
-    hint?: string;
-}
-
-function Notes(props: NotesProps) {
-
-    return (
-        <div className={`${styles.entry} ${styles.notesContainer}`}>
-            <h3>Eigene Notizen</h3>
-            <textarea value={props.notes} className={styles.notes} onChange={(e) => {
-                const newNotes = e.target.value;
-                if (props.onChange != null) {
-                    if (props.feedId == null) throw new Error('onChange defined, but not feedId');
-                    props.onChange(props.feedId, newNotes);
-                }
-            }} onKeyDown={(e) => { if (props.onKeyDown) props.onKeyDown(); }} />
-            {
-                <div className={styles.dirtyHint}>
-                    {
-                        <span>{props.hint}</span>
-                    }
-                </div>
-            }
-        </div>
-    )
-}
-
 
 interface DateMonth {
     /**
@@ -549,7 +519,6 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
         feedData: {
             _id: 'Georg Reitinger',
             name: 'Georg Reitinger',
-            notes: '',
             birthdays: [
                 {
                     name: 'Irmgard',
@@ -667,18 +636,6 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             } else {
                 // console.log('feedJson', feedJson);
                 const feed: FeedData = JSON.parse(feedJson);
-                {
-                    const localNotesStr = localStorage.getItem('notes');
-                    // console.log('localNotesStr [1]', localNotesStr);
-                    if (localNotesStr != null) {
-                        const localNotes: string[] = JSON.parse(localNotesStr);
-                        if (localNotes.length > 0) {
-                            const newLocalNotes = localNotes[localNotes.length - 1];
-                            feed.notes = newLocalNotes;
-                        }
-                    }
-
-                }
                 setState(s => ({
                     ...s,
                     feedData: feed
@@ -693,23 +650,6 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                     if (abortController.signal.aborted) return;
                     if (feed == null) {
                         return;
-                    }
-                    {
-                        const localNotesStr = localStorage.getItem('notes');
-                        // console.log('localNotesStr [2]', localNotesStr);
-                        if (localNotesStr != null) {
-                            const localNotes: string[] = JSON.parse(localNotesStr);
-                            if (localNotes.length > 0) {
-                                const newLocalNotes = localNotes[localNotes.length - 1];
-                                if (newLocalNotes != feed.notes) {
-                                    // console.log('trick-onNotesChange mit newLocalNotes=', newLocalNotes)
-                                    if (onNotesChange != null) onNotesChange(feed._id, newLocalNotes);
-                                }
-                                // console.log('newLocalNotes', newLocalNotes);
-                                feed.notes = newLocalNotes;
-                            }
-                        }
-
                     }
 
                     try {
@@ -729,7 +669,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             console.log('aborting effect when today1', today1);
             abortController.abort();
         }
-    }, [admin, editedId/* , onNotFound, onNotesChange */])
+    }, [admin, editedId, onNotFound])
 
     useEffect(() => {
         function startSetup() {
@@ -761,6 +701,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
         if (settingUp) {
             startSetup();
         }
+
     }, [settingUp])
 
     useEffect(() => {
@@ -1175,25 +1116,10 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             }
             <Today />
             <NextBirthday admin={admin ?? false} feedData={feedData} editState={editState} editedText={editedText} setEditedText={setEditedText} today={today} />
-            <Notes feedId={feedData?._id} hint={notesHint} notes={feedData?.notes ?? ''} onChange={(feedId: string, val: string) => {
-                setState(s => {
-                    if (s.feedData == null) {
-                        console.error('feedData null on change in notes')
-                        return s;
-                    }
-                    const newState: State = {
-                        ...s,
-                        feedData: {
-                            ...s.feedData,
-                            notes: val
-                        }
-                    }
-                    return newState;
-                })
-                if (onNotesChange != null) onNotesChange(feedId, val);
-            }} onKeyDown={() => {
-                if (onNotesKeyDown != null) onNotesKeyDown();
-            }} />
+            {
+                feedData != null &&
+                <NotesComp entryClass={styles.entry} feedId={feedData?._id} />
+                }
             <AllBirthdays
                 ref={editedTextRef}
                 feedData={feedData}
