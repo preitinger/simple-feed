@@ -67,7 +67,7 @@ export default function NotesComp(props: NotesProps) {
         const notesListStr = localStorage.getItem('notes');
         console.log('notes from localStorage in timeoutFunc', notesListStr);
         const notesList: string[] = notesListStr == null ? [] : JSON.parse(notesListStr);
-        if (newNotes != null) notesList.push(newNotes);
+        if (newNotes != null) notesList.push(newNotes.substring(0, 4000));
         if (notesList.length > 8) notesList.splice(0, notesList.length - 8);
         const newNotesListStr = JSON.stringify(notesList);
         localStorage.setItem('notes', newNotesListStr);
