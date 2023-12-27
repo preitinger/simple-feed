@@ -2,14 +2,14 @@ import { MetadataRoute } from 'next'
  
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        "id": "any_id",
+        "id": "pr-simple-feed",
         "theme_color": "#f69435",
         "background_color": "#f69435",
         "display": "standalone",
         "scope": ".",
         "start_url": "/",
-        "name": "simple-feed",
-        "short_name": "simple-feed",
+        "name": "Meine Infos",
+        "short_name": "Infos",
         "description": "Simplistic feed for handicapped people",
         "orientation": "portrait",
         "icons": [
