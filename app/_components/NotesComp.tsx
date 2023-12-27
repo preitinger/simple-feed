@@ -43,6 +43,7 @@ function organizePasswd(id: string) {
 export default function NotesComp(props: NotesProps) {
     const [notes, setNotes] = useState<string>('');
     const [hint, setHint] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
     const changeRef = useRef<ChangeData>(initialChangeData);
 
     useEffect(() => {
@@ -54,6 +55,12 @@ export default function NotesComp(props: NotesProps) {
             id: props.feedId,
             passwd: passwd
         }
+        const loadFromStorage = () => {
+            const notesFromStorageStr = localStorage.getItem('notes');
+            if (notesFromStorageStr == null) return;
+            const notesList = JSON.parse(notesFromStorageStr);
+            if (notesList.length > 0) setNotes(notesList[notesList.length - 1]);
+        }
         fetch('/api/notes/load', {
             method: 'POST',
             body: JSON.stringify(req),
@@ -63,7 +70,16 @@ export default function NotesComp(props: NotesProps) {
                 case 'success':
                     setNotes(res.notes);
                     break;
+                case 'error':
+                    loadFromStorage();
+                    break;
             }
+        }).catch(reason => {
+            console.error('Fehler beim Laden der Notizen', reason);
+            alert('Fehler beim Laden der Notizen: ' + JSON.stringify(reason));
+            loadFromStorage();
+        }).finally(() => {
+            setLoading(false);
         })
     }, [props.feedId])
 
