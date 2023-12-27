@@ -47,6 +47,7 @@ export default function NotesComp(props: NotesProps) {
     const changeRef = useRef<ChangeData>(initialChangeData);
 
     useEffect(() => {
+        let aborted = false;
         const passwd = organizePasswd(props.feedId);
         if (passwd == null) return;
 
@@ -66,6 +67,7 @@ export default function NotesComp(props: NotesProps) {
             body: JSON.stringify(req),
             signal: abortController.signal
         }).then(r => r.json()).then((res: LoadNotesResp) => {
+            if (aborted) return;
             switch (res.type) {
                 case 'success':
                     setNotes(res.notes);
@@ -75,14 +77,17 @@ export default function NotesComp(props: NotesProps) {
                     break;
             }
         }).catch(reason => {
+            if (aborted) return;
             console.error('Fehler beim Laden der Notizen', reason);
             alert('Fehler beim Laden der Notizen: ' + JSON.stringify(reason));
             loadFromStorage();
         }).finally(() => {
+            if (aborted) return;
             setLoading(false);
         })
 
         return () => {
+            aborted = true;
             abortController.abort();
         }
     }, [props.feedId])
