@@ -1120,19 +1120,6 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                 feedData != null &&
                 <NotesComp entryClass={styles.entry} feedId={feedData?._id} />
                 }
-            <AllBirthdays
-                ref={editedTextRef}
-                feedData={feedData}
-                editState={editState}
-                editedText={editedText}
-                setEditedText={setEditedText}
-                admin={admin ?? false}
-                addBirthday={addBirthday}
-                onEnter={onEditEnter}
-                onCancel={onEditCancel}
-                onEdit={onBirthdayEdit}
-                onDelete={onBirthdayDelete}
-            />
             {
                 admin && <button id='addEntryButton' onClick={onAddEntry}>Eintrag hinzufügen</button>
             }
@@ -1176,6 +1163,19 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                 ))
 
             }
+            <AllBirthdays
+                ref={editedTextRef}
+                feedData={feedData}
+                editState={editState}
+                editedText={editedText}
+                setEditedText={setEditedText}
+                admin={admin ?? false}
+                addBirthday={addBirthday}
+                onEnter={onEditEnter}
+                onCancel={onEditCancel}
+                onEdit={onBirthdayEdit}
+                onDelete={onBirthdayDelete}
+            />
             <div className={styles.remainingSpace}>
                 Used space: {usedSpace}
             </div>
