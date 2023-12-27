@@ -143,6 +143,7 @@ export default function NotesComp(props: NotesProps) {
                 }, (hint: string) => {
                     setHint(hint);
                 });
+                setLoading(false);
                 return;
             }
         }
