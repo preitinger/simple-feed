@@ -73,6 +73,8 @@ export default function NotesComp(props: NotesProps) {
         localStorage.setItem('notes', newNotesListStr);
         console.log('stored new notes', newNotesListStr);
 
+        if (notesList.length === 0) return;
+
         const req: UpdateNotesReq = {
             feedId: props.feedId,
             passwd: passwd,
