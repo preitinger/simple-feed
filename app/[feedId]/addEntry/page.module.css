@@ -1,0 +1,70 @@
+.main {
+    margin: 1em;
+}
+.main h1 {
+    margin: 0;
+    margin-bottom: 1em;
+}
+.main div label {
+    display: block;
+    /* width: auto; */
+    margin: 0.5em 0;
+    /* border: 1px solid green; */
+}
+.main div {
+    margin: 1em 0;
+    /* border: 1px solid red; */
+}
+.main input[type="text"], .main input[type="password"] {
+    margin: 0.5em 0;
+    padding: 1em;
+    border-radius: 1em;
+}
+
+.main textarea {
+    margin: 0.5em 0;
+    padding: 1em;
+    border-radius: 1em;
+    width: 400px;
+    height: 300px;
+}
+
+.main img {
+    width: auto;
+    height: auto;
+}
+.main button {
+    border-radius: 1em;
+    border: 1px solid darkgray;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    font-size: large;
+    margin: 0.5em 0;
+    background-color: lightgray;
+}
+
+.imgUploadLabel {
+    position: relative;
+    margin: 0.5em 0;
+    border: 1px solid #ccc;
+    border-radius: 1em;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    background-color: lightgray;
+    border: 1px solid darkgray;
+    width: 20ex !important;
+    cursor: pointer;
+}
+.imgUploadLabel:focus-within, .imgUploadLabel:hover {
+    outline: 3px solid black;
+}
+.main input[type="file"] {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;    
+    opacity: 0;
+}

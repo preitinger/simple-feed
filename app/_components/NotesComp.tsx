@@ -52,6 +52,7 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
         state: 'fetching'
     });
 
+    setHint(hintFetching);
     fetch('/api/notes/update', {
         method: 'POST',
         body: JSON.stringify(req),

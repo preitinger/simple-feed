@@ -8,6 +8,7 @@
     height: 400px;
     border-radius: 1em;
     padding: 1em;
+    font-size: large;
 }
 
 .dirtyHint {

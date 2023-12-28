@@ -34,6 +34,27 @@
     display: flex;
     flex-direction: column;
 }
+.feedComp button {
+    border-radius: 1em;
+    border: 1px solid darkgray;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    font-size: large;
+    margin-left: 2em;
+    background-color: lightgray;
+}
+.imgUploadLabel {
+    border: 1px solid #ccc;
+    border-radius: 1em;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    background-color: lightgray;
+    border: 1px solid darkgray;
+}
+.feedComp input[type="file"] {
+    display: none;
+}
 .button {
     display: block;
     margin: 1em;
