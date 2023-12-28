@@ -568,6 +568,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             fetchFeed(editedId, abortController.signal).then(feed => {
                 if (abortController.signal.aborted) return;
                 if (feed == null) {
+                    console.log('alerting in "start effect"');
                     alert(`Feed ${editedId} not found!`);
                     setState(s => ({
                         ...s,
@@ -1088,31 +1089,29 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             }
 
             {
-                feedData?.feedEntries.reverse().map((e, i, l) => {
-                    const j = l.length - 1 - i;
-                    return (
-                        <FeedEntryComp                        ref={editedTextRef}
-                        key={`e.${j}`}
+                feedData?.feedEntries.map((e, i) => (
+                    <FeedEntryComp
+                        ref={editedTextRef}
+                        key={`e.${i}`}
                         admin={admin ?? false}
                         feedData={feedData}
-                        idx={j}
+                        idx={i}
                         editState={editState}
                         editedText={editedText}
                         setEditedText={setEditedText}
                         onEnter={onEditEnter}
                         onCancel={onEditCancel}
-                        onEdit={onEntryEdit(j)}
-                        onDelete={onEntryDelete(j)}
-                        onMove={onEntryMove(j)}
+                        onEdit={onEntryEdit(i)}
+                        onDelete={onEntryDelete(i)}
+                        onMove={onEntryMove(i)}
                         onImgChanged={(newImg) => {
                             if (state.feedData == null) return;
-                            console.log('j', j);
                             setState({
                                 ...state,
                                 feedData: {
                                     ...state.feedData,
                                     feedEntries: state.feedData.feedEntries.map((e, i1) => (
-                                        i1 === j ? {
+                                        i1 === i ? {
                                             ...e,
                                             imgData: newImg ?? undefined
                                         } : e
@@ -1125,9 +1124,8 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                             })
                         }}
                     />
+                ))
 
-                    )
-                })
             }
             <AllBirthdays
                 ref={editedTextRef}

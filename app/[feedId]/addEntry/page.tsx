@@ -92,20 +92,23 @@ export default function Page({ params }: { params: { feedId: string } }) {
             method: 'POST',
             body: JSON.stringify(req)
         }).then(res => res.json()).then((resp: AddEntryResp) => {
+            const key = `addingFeed-${params.feedId}`;
+
             switch (resp.type) {
                 case 'success':
                     alert('Eintrag hinzugefügt.');
                     setHeader('');
                     setImgData(null);
                     setBody('');
+                    localStorage.removeItem(key);
                     break;
                 case 'adminActive':
                     alert(`Der Eintrag kann gerade nicht hinzugefügt werden, da der Feed ${params.feedId} gerade gewartet wird.`);
-                    localStorage.setItem(`addingFeed-${params.feedId}`, JSON.stringify(req));
+                    localStorage.setItem(key, JSON.stringify(req));
                     break;
                 case 'error':
                     alert('Fehler beim Speichern: ' + resp.error);
-                    localStorage.setItem(`addingFeed-${params.feedId}`, JSON.stringify(req));
+                    localStorage.setItem(key, JSON.stringify(req));
                     break;
             }
         })

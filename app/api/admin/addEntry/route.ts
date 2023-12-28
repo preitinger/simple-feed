@@ -84,11 +84,14 @@ export async function POST(req1: NextRequest): Promise<NextResponse<AddEntryResp
         }, {
             $push: {
                 'data.feedEntries': {
-                    header: req.header,
-                    imgData: req.imgData ?? undefined,
-                    body: req.body
+                    $each: [{
+                        header: req.header,
+                        imgData: req.imgData ?? undefined,
+                        body: req.body
+                    }],
+                    $position: 0
                 }
-            },
+            } ,
             $set: {
                 feedArchive: newFeedArchive
             },
