@@ -442,11 +442,9 @@ async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | n
         return null;
     }
     // console.log('fetchFeed: url=', url);
-    alert('before fetch for url ' + url);
     const body: LoadFeedDataReq = {
         id: id
     }
-    alert('before fetch for body ' + JSON.stringify(body));
     return fetch(url, {
         method: 'POST',
         body: JSON.stringify(body),
@@ -455,10 +453,8 @@ async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | n
         res => res.json()
     ).then((j: MyResp<LoadFeedDataResp>) => {
         if (signal?.aborted) {
-            alert('fetchFeed returning null because aborted')
             return null;
         }
-        alert('response of /api/feed/load: ' + JSON.stringify(j));
         switch (j.type) {
             case 'error':
                 console.error('error response from ' + url + ': ', j.error);
@@ -597,7 +593,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                 if (abortController.signal.aborted) return;
                 if (feed == null) {
                     console.log('alerting in "start effect"');
-                    alert(`Feed ${editedId} not found!`);
+                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${editedId}" Tippfehler?`)
                     setState(s => ({
                         ...s,
                         feedData: null
@@ -673,7 +669,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             if (passwd == null) return;
             fetchFeed(id, abortControllerRef.current?.signal).then((feed: FeedData | null) => {
                 if (feed == null) {
-                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}"`)
+                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}" Tippfehler?`)
                     startSetup();
                 } else {
                     try {
