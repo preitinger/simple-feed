@@ -1,4 +1,4 @@
-import FeedData from "./FeedData";
+import FeedData, { LoadFeedDataReq, LoadFeedDataResp } from "./FeedData";
 import { transformPasswd } from "./hash";
 import clientPromise from "./mongodb";
 
@@ -15,15 +15,34 @@ export interface FeedDataInDb {
     passwd: string;
 }
 
-export async function loadFeedData(id: string): Promise<FeedData | null> {
+export async function loadFeedData(req: LoadFeedDataReq): Promise<LoadFeedDataResp> {
+    const id = req.id;
+    // console.log('loadFeedData for id', id);
     const client = await clientPromise;
-    return (await client.db('simple-feed').collection<FeedDataInDb>('feeds').findOne({
-        _id: id
-    }, {
-        projection: {
-            data: 1
+    try {
+        const x = (await client.db('simple-feed').collection<FeedDataInDb>('feeds').findOne({
+            _id: id
+        }, {
+            projection: {
+                data: 1
+            }
+        }))?.data ?? null;
+        return x == null ?
+        {
+            type: 'notFound'
         }
-    }))?.data ?? null;
+        :
+        {
+            type: 'success',
+            feedData: x
+        }
+    } catch (reason) {
+        console.warn('caught in loadFeedData:', reason);
+        return {
+            type: 'error',
+            error: JSON.stringify(reason)
+        }
+    }
 }
 
 /**
@@ -124,7 +143,7 @@ export async function editStart(id: string, passwd: string, force: boolean): Pro
                 data: res.data
             }
         } catch (reason) {
-            console.error(reason);
+            console.error('caught in editStart: ', reason);
             return {
                 type: 'error',
                 error: 'MongoDB threw exception on update: ' + JSON.stringify(reason),

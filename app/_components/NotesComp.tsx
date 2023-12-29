@@ -26,15 +26,16 @@ const initialChangeData: ChangeData = {
     state: 'idle',
 }
 
-const hintTyping = 'lokal geändert';
-const hintFetching = 'Sende an Server ...';
-const hintTypingWhileFetching = 'Während des Sendens noch mal lokal geändert ...';
-const hintOfflineIdle = 'lokal geändert und offline';
+const hintTyping = 'Änderung noch nicht gesendet.';
+const hintFetching = 'Sende Änderungen ...';
+const hintTypingWhileFetching = 'Sende Änderungen und weitere Änderung ...';
+const hintOfflineIdle = 'Änderung noch nicht gesendet, da offline';
 
 function organizePasswd(id: string) {
     let passwd = localStorage.getItem('passwd');
     if (passwd == null) {
         passwd = prompt('Passwort für ' + id);
+        if (passwd != null) localStorage.setItem('passwd', passwd);
     }
 
     return passwd;

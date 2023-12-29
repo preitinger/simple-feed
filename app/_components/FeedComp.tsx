@@ -3,11 +3,13 @@
 import Image from 'next/image'
 import styles from './FeedComp.module.css'
 import { ChangeEventHandler, forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import FeedData, { Birthday, BirthdayDate, FeedEntry, birthdayDifference, compareBirthday, formatBirthdayDate, parseBirthdayDate } from '../_lib/FeedData'
+import FeedData, { Birthday, BirthdayDate, FeedEntry, LoadFeedDataReq, LoadFeedDataResp, birthdayDifference, compareBirthday, formatBirthdayDate, parseBirthdayDate } from '../_lib/FeedData'
 import { EditStartReq } from '../_lib/admin/editStart';
 import { useRouter } from 'next/navigation';
 import { resizeImage } from '../_lib/image';
 import NotesComp from './NotesComp';
+import { formatWeekdayDe } from '../_lib/parsingAndFormatting';
+import { MyResp } from '../_lib/apiRoutes';
 
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
@@ -432,14 +434,34 @@ function dateMonthOf(d: Date): DateMonth {
 }
 
 async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | null> {
-    const url = `/api/feed/${id}`;
+    const url = `/api/feed/load`;
+    const t = typeof(id);
+    console.log('typeof id: ', t);
+    if (t !== 'string') {
+        console.error('typeof id: ', t)
+        return null;
+    }
     // console.log('fetchFeed: url=', url);
-    return fetch(url, { signal: signal }).then(
+    const body: LoadFeedDataReq = {
+        id: id
+    }
+    return fetch(url, { 
+        method: 'POST',
+        body: JSON.stringify(body),
+        signal: signal
+     }).then(
         res => res.json()
-    ).then(j => {
+    ).then((j: MyResp<LoadFeedDataResp>) => {
         if (signal?.aborted) return null;
-        const feedData: FeedData | null = j;
-        return feedData;
+        switch (j.type) {
+            case 'error':
+                console.error('error response from ' + url + ': ', j.error);
+                return null;
+            case 'notFound':
+                return null;
+            case 'success':
+                return j.feedData;
+        }
     }).catch(reason => {
         // probably fetch aborted by abort signal or device offline
         return null;
@@ -698,7 +720,11 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
     function Today() {
         return (
             <div className={`${styles.entry}`}>
-                <h3>Heute: {today?.toLocaleString()}</h3>
+                {
+                    today != null ?
+                    <h3>Heute: {formatWeekdayDe(today?.getDay())}, der {today?.toLocaleString()}</h3>
+                    : <span>Lade Daten ...</span>
+                }
             </div>
         )
     }

@@ -1,0 +1,19 @@
+.topRight {
+    display: block;
+    position: absolute;
+    right: 1em;
+    top: 1em;
+    width: auto;
+    height: auto;
+    color: gray;
+}
+.topRight button {
+    border: none;
+    background: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.topRight button:hover {
+    text-decoration: underline;
+}

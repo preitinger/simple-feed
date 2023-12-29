@@ -50,81 +50,90 @@ export async function updateNotes({feedId, passwd, newNotesList}: UpdateNotesReq
     // console.log('vor sleep');
     // await sleep(3000); // TODO just for debugging
     // console.log('nach sleep');
+
+    try {
+        if (newNotesList.length === 0) {
+            return {
+                type: 'error',
+                error: 'newNotes empty'
+            }
+        }
+        const client = await clientPromise;
+        const col = client.db('simple-feed').collection<NotesInDb>('notes');
+        const numTries = 7;
+        let tries: number = numTries;
     
-    if (newNotesList.length === 0) {
+        while (--tries >= 0) {
+            const findRes = await col.findOne<{ notes: string; version: number; notesArchive: string[] }>({
+                _id: feedId
+            }, {
+                projection: {
+                    notes: 1,
+                    version: 1,
+                    notesArchive: 1
+                }
+            });
+            // console.log('findRes', findRes);
+    
+            if (findRes == null) {
+                return {
+                    type: 'error',
+                    error: 'id not found'
+                }
+            }
+    
+            const oldNotes = findRes.notes;
+            const oldNotesArchive = findRes.notesArchive;
+            const newNotes = newNotesList[newNotesList.length - 1];
+            const newNotesArchive = newNotesList.length >= 9
+                ? [...newNotesList.slice(newNotesList.length - 9, newNotesList.length - 1)] :
+                newNotesList.length + oldNotesArchive.length > 8
+                ? [...oldNotesArchive.slice(oldNotesArchive.length - (8 - newNotesList.length)), oldNotes, ...newNotesList.slice(0, newNotesList.length - 1)]
+                : [...oldNotesArchive, oldNotes, ...newNotesList.slice(0, newNotesList.length - 1)];
+    
+            const updateRes = await col.updateOne({
+                _id: feedId,
+                passwd: transformPasswd('editor', passwd),
+                version: findRes.version
+            }, {
+                $set: {
+                    notes: newNotes,
+                    notesArchive: newNotesArchive
+                },
+                $inc: {
+                    version: 1
+                }
+            })
+            if (!updateRes.acknowledged) {
+                return {
+                    type: 'error',
+                    error: 'MongoDB did not acknowledge update'
+                }
+            }
+            if (updateRes.matchedCount !== 1) {
+                continue;
+            }
+            if (updateRes.modifiedCount !== 1) {
+                return {
+                    type: 'error',
+                    error: 'MongoDB did return inconsistent matchedCount and modifiedCount on update'
+                }
+            }
+    
+            return {
+                type: 'success',
+            };
+        }
         return {
             type: 'error',
-            error: 'newNotes empty'
-        }
-    }
-    const client = await clientPromise;
-    const col = client.db('simple-feed').collection<NotesInDb>('notes');
-    const numTries = 7;
-    let tries: number = numTries;
-
-    while (--tries >= 0) {
-        const findRes = await col.findOne<{ notes: string; version: number; notesArchive: string[] }>({
-            _id: feedId
-        }, {
-            projection: {
-                notes: 1,
-                version: 1,
-                notesArchive: 1
-            }
-        });
-        // console.log('findRes', findRes);
-
-        if (findRes == null) {
-            return {
-                type: 'error',
-                error: 'id not found'
-            }
-        }
-
-        const oldNotes = findRes.notes;
-        const oldNotesArchive = findRes.notesArchive;
-        const newNotes = newNotesList[newNotesList.length - 1];
-        const newNotesArchive = newNotesList.length >= 9
-            ? [...newNotesList.slice(newNotesList.length - 9, newNotesList.length - 1)] :
-            newNotesList.length + oldNotesArchive.length > 8
-            ? [...oldNotesArchive.slice(oldNotesArchive.length - (8 - newNotesList.length)), oldNotes, ...newNotesList.slice(0, newNotesList.length - 1)]
-            : [...oldNotesArchive, oldNotes, ...newNotesList.slice(0, newNotesList.length - 1)];
-
-        const updateRes = await col.updateOne({
-            _id: feedId,
-            passwd: transformPasswd('editor', passwd),
-            version: findRes.version
-        }, {
-            $set: {
-                notes: newNotes,
-                notesArchive: newNotesArchive
-            },
-            $inc: {
-                version: 1
-            }
-        })
-        if (!updateRes.acknowledged) {
-            return {
-                type: 'error',
-                error: 'MongoDB did not acknowledge update'
-            }
-        }
-        if (updateRes.matchedCount !== 1) {
-            continue;
-        }
-        if (updateRes.modifiedCount !== 1) {
-            return {
-                type: 'error',
-                error: 'MongoDB did return inconsistent matchedCount and modifiedCount on update'
-            }
-        }
-
-        return {
-            type: 'success',
+            error: 'MongoDB failed ' + numTries + ' times when trying to update the feed. Maybe your password is wrong?'
         };
+    
+    } catch (reason) {
+        return {
+            type: 'error',
+            error: JSON.stringify(reason)
+        }
     }
-    return {
-        type: 'error',
-        error: 'MongoDB failed ' + numTries + ' times when trying to update the feed. Maybe your password is wrong?'
-    };
+    
 }

@@ -79,3 +79,17 @@ export default interface FeedData {
     birthdays: Birthday[];
     feedEntries: FeedEntry[];
 }
+
+export interface LoadFeedDataReq {
+    id: string;
+}
+
+export type LoadFeedDataResp = {
+    type: 'success';
+    feedData: FeedData;
+} | {
+    type: 'notFound'
+} | {
+    type: 'error';
+    error: string;
+}
