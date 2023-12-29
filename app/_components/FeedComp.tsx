@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { resizeImage } from '../_lib/image';
 import NotesComp from './NotesComp';
 import { formatWeekdayDe } from '../_lib/parsingAndFormatting';
-import { MyResp } from '../_lib/apiRoutes';
+import { MyResp, myFetchPost } from '../_lib/apiRoutes';
 
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
@@ -28,6 +28,20 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
         };
     });
 };
+
+interface EntryBodyProps {
+    body: string;
+}
+
+function EntryBodyComp(props: EntryBodyProps) {
+    return (
+        <div>
+            {
+                props.body.split('\n').map((e, i) => (<p key={i}>{e}</p>))
+            }
+        </div>
+    )
+}
 
 interface InputProps {
     value: string;
@@ -330,7 +344,8 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
                         }}
                     />
                     :
-                    <pre>{entry?.body}</pre>
+                    <EntryBodyComp body={entry?.body ?? ''} />
+                // <pre>{entry?.body}</pre>
             }
         </div>
     )
@@ -433,7 +448,7 @@ function dateMonthOf(d: Date): DateMonth {
     }
 }
 
-async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | null> {
+async function fetchFeed(id: string, passwd: string, signal?: AbortSignal): Promise<FeedData | null> {
     const url = `/api/feed/load`;
     const t = typeof (id);
     console.log('typeof id: ', t);
@@ -443,31 +458,34 @@ async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | n
     }
     // console.log('fetchFeed: url=', url);
     const body: LoadFeedDataReq = {
-        id: id
+        id: id,
+        passwd: passwd
     }
-    return fetch(url, {
-        method: 'POST',
-        body: JSON.stringify(body),
-        signal: signal
-    }).then(
-        res => res.json()
-    ).then((j: MyResp<LoadFeedDataResp>) => {
-        if (signal?.aborted) {
+    const res = await myFetchPost<LoadFeedDataReq, LoadFeedDataResp>(url, body, signal)
+        .then((j) => {
+            if (signal?.aborted) {
+                return null;
+            }
+            switch (j.type) {
+                case 'error':
+                    console.error('error response from ' + url + ': ', j.error);
+                    return null;
+                case 'notFound':
+                    alert('Feed mit dieser ID nicht gefunden!')
+                    return null;
+                case 'success':
+                    return j.feedData;
+                case 'wrongPasswd':
+                    alert('Falsches Passwort!');
+                    localStorage.removeItem('passwd');
+                    return null;
+            }
+        }).catch(reason => {
+            // probably fetch aborted by abort signal or device offline
             return null;
-        }
-        switch (j.type) {
-            case 'error':
-                console.error('error response from ' + url + ': ', j.error);
-                return null;
-            case 'notFound':
-                return null;
-            case 'success':
-                return j.feedData;
-        }
-    }).catch(reason => {
-        // probably fetch aborted by abort signal or device offline
-        return null;
-    })
+        })
+
+    return res;
 }
 
 interface EditNoneState {
@@ -529,9 +547,19 @@ interface State {
     editState: EditState;
 }
 
+function organizePasswd(id: string) {
+    let passwd = localStorage.getItem('passwd');
+    if (passwd == null) {
+        passwd = prompt('Passwort für ' + id);
+        if (passwd != null) localStorage.setItem('passwd', passwd);
+    }
+
+    return passwd;
+}
+
 interface FeedCompProps {
+    id: string;
     admin?: boolean;
-    editedId?: string;
     onNotFound?: () => void;
     onAbort?: () => void;
     onSave?: (feed: FeedData) => void;
@@ -540,7 +568,7 @@ interface FeedCompProps {
     notesHint?: string;
 }
 
-export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave, onNotesChange, onNotesKeyDown, notesHint }: FeedCompProps) {
+export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNotesChange, onNotesKeyDown, notesHint }: FeedCompProps) {
     const [state, setState] = useState<State>({
         feedData: null,
         editState: {
@@ -579,7 +607,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
     // }
 
     useEffect(() => {
-        console.log('useEffect: admin', admin, 'editedId', editedId);
+        console.log('useEffect: admin', admin, 'id', id);
         const today1 = new Date();
         // console.log('today1', today1.toLocaleString());
         setToday(today1);
@@ -588,12 +616,14 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
 
         // console.log('typeof(localStorage)', typeof (localStorage));
 
-        if (admin && editedId != null) {
-            fetchFeed(editedId, abortController.signal).then(feed => {
+        if (admin) {
+            const passwd = organizePasswd(id);
+            if (passwd == null) return;
+            fetchFeed(id, passwd, abortController.signal).then(feed => {
                 if (abortController.signal.aborted) return;
                 if (feed == null) {
                     console.log('alerting in "start effect"');
-                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${editedId}" Tippfehler?`)
+                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}" Tippfehler?`)
                     setState(s => ({
                         ...s,
                         feedData: null
@@ -624,6 +654,10 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             } else {
                 // console.log('feedJson', feedJson);
                 const feed: FeedData = JSON.parse(feedJson);
+                if (feed._id !== id) {
+                    setSettingUp(true);
+                    return;
+                }
                 setState(s => ({
                     ...s,
                     feedData: feed
@@ -634,7 +668,9 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
                     return;
                 }
                 // console.log('before fetchFeed');
-                fetchFeed(feed._id, abortController.signal).then(feed => {
+                const passwd = organizePasswd(id);
+                if (passwd == null) return;
+                fetchFeed(id, passwd, abortController.signal).then(feed => {
                     if (abortController.signal.aborted) return;
                     if (feed == null) {
                         return;
@@ -657,20 +693,24 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             console.log('aborting effect when today1', today1);
             abortController.abort();
         }
-    }, [admin, editedId, onNotFound])
+    }, [admin, id, onNotFound])
 
     useEffect(() => {
         function startSetup() {
             if (typeof (localStorage) !== 'object') return;
 
-            const id = prompt('Feed id', '');
-            if (id == null) return;
             const passwd = prompt('Feed Passwort', '');
             if (passwd == null) return;
-            fetchFeed(id, abortControllerRef.current?.signal).then((feed: FeedData | null) => {
+            fetchFeed(id, passwd, abortControllerRef.current?.signal).then((feed: FeedData | null) => {
                 if (feed == null) {
-                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}" Tippfehler?`)
-                    startSetup();
+                    setState({
+                        feedData: null,
+                        editState: {
+                            type: 'none',
+                            dirty: false
+                        }
+                    })
+                    setSettingUp(true);
                 } else {
                     try {
                         localStorage.setItem('feed', JSON.stringify(feed));
@@ -1111,7 +1151,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             <NextBirthday admin={admin ?? false} feedData={feedData} editState={editState} editedText={editedText} setEditedText={setEditedText} today={today} />
             {
                 feedData != null &&
-                <NotesComp entryClass={styles.entry} feedId={feedData?._id} />
+                <NotesComp entryClass={styles.entry} feedId={id} />
             }
             {
                 admin && <button id='addEntryButton' onClick={onAddEntry}>Eintrag hinzufügen</button>

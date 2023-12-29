@@ -82,6 +82,7 @@ export default interface FeedData {
 
 export interface LoadFeedDataReq {
     id: string;
+    passwd: string;
 }
 
 export type LoadFeedDataResp = {
@@ -89,6 +90,8 @@ export type LoadFeedDataResp = {
     feedData: FeedData;
 } | {
     type: 'notFound'
+} | {
+    type: 'wrongPasswd'
 } | {
     type: 'error';
     error: string;

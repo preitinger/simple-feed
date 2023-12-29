@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import styles from './page.module.css'
 import { resizeImage } from '@/app/_lib/image';
-import { AddEntryReq, AddEntryResp } from '@/app/api/admin/addEntry/route';
 import { useRouter } from 'next/navigation';
+import { myFetchPost } from '@/app/_lib/apiRoutes';
+import { AddEntryReq, AddEntryResp } from '@/app/_lib/admin/addEntry';
 
 interface TextInputProps {
     id: string;
@@ -88,10 +89,7 @@ export default function Page({ params }: { params: { feedId: string } }) {
             imgData: imgData,
             body: body
         }
-        fetch(`/api/admin/addEntry`, {
-            method: 'POST',
-            body: JSON.stringify(req)
-        }).then(res => res.json()).then((resp: AddEntryResp) => {
+        myFetchPost<AddEntryReq, AddEntryResp>(`/api/admin/addEntry`, req).then((resp) => {
             const key = `addingFeed-${params.feedId}`;
 
             switch (resp.type) {

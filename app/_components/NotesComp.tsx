@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './NotesComp.module.css'
 import { LoadNotesReq, LoadNotesResp, UpdateNotesReq, UpdateNotesResp } from '../_lib/Notes';
+import { MyResp, myFetchPost } from '../_lib/apiRoutes';
 
 export interface NotesProps {
     entryClass: string;
@@ -26,7 +27,7 @@ const initialChangeData: ChangeData = {
     state: 'idle',
 }
 
-const hintTyping = 'Änderung noch nicht gesendet.';
+const hintTyping = 'Änderung noch nicht gespeichert. Bitte kurz warten.';
 const hintFetching = 'Sende Änderungen ...';
 const hintTypingWhileFetching = 'Sende Änderungen und weitere Änderung ...';
 const hintOfflineIdle = 'Änderung noch nicht gesendet, da offline';
@@ -54,10 +55,7 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
     });
 
     setHint(hintFetching);
-    fetch('/api/notes/update', {
-        method: 'POST',
-        body: JSON.stringify(req),
-    }).then(r => r.json()).then((res: UpdateNotesResp) => {
+    myFetchPost<UpdateNotesReq, UpdateNotesResp>('/api/notes/update', req).then((res: MyResp<UpdateNotesResp>) => {
         const changeDataCurrent = getChangeData();
         switch (res.type) {
             case 'success':
@@ -82,6 +80,7 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
                 alert('Error in updateNotes: ' + res.error);
                 changeDataCurrent.state = 'offlineIdle';
                 setHint(hintOfflineIdle);
+                localStorage.removeItem('passwd');
                 break;
         }
     }).catch(reason => {
@@ -147,17 +146,17 @@ export default function NotesComp(props: NotesProps) {
                 }
             }
         }
-        fetch('/api/notes/load', {
-            method: 'POST',
-            body: JSON.stringify(req),
-            signal: abortController.signal
-        }).then(r => r.json()).then((res: LoadNotesResp) => {
+        myFetchPost<LoadNotesReq, LoadNotesResp>('/api/notes/load', req, abortController.signal)
+        .then((res) => {
             if (aborted) return;
             switch (res.type) {
                 case 'success':
                     setNotes(res.notes);
+                    setLoading(false);
                     break;
                 case 'error':
+                    alert('Beim Laden der Notizen ist folgender Fehler aufgetreten: ' + res.error);
+                    localStorage.removeItem('passwd');
                     break;
             }
         }).catch(reason => {
@@ -166,7 +165,6 @@ export default function NotesComp(props: NotesProps) {
             alert('Fehler beim Laden der Notizen: ' + JSON.stringify(reason));
         }).finally(() => {
             if (aborted) return;
-            setLoading(false);
         })
 
         return () => {
@@ -177,6 +175,7 @@ export default function NotesComp(props: NotesProps) {
 
 
     function onChange(newNotes: string) {
+        if (loading) return;
         setNotes(newNotes);
 
         const passwd = organizePasswd(props.feedId);
@@ -222,6 +221,8 @@ export default function NotesComp(props: NotesProps) {
     }
 
     function onKeyDown() {
+        if (loading) return;
+
         const passwd = organizePasswd(props.feedId);
         if (passwd == null) return;
 

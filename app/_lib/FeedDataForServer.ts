@@ -1,4 +1,6 @@
 import FeedData, { LoadFeedDataReq, LoadFeedDataResp } from "./FeedData";
+import { EditFinishReq, EditFinishResp } from "./admin/editFinish";
+import { EditStartReq, EditStartResp } from "./admin/editStart";
 import { transformPasswd } from "./hash";
 import clientPromise from "./mongodb";
 
@@ -24,18 +26,26 @@ export async function loadFeedData(req: LoadFeedDataReq): Promise<LoadFeedDataRe
             _id: id
         }, {
             projection: {
-                data: 1
+                data: 1,
+                passwd: 1
             }
-        }))?.data ?? null;
-        return x == null ?
-        {
-            type: 'notFound'
+        }));
+
+        if (x == null) {
+            return ({
+                type: 'notFound'
+            })
         }
-        :
-        {
-            type: 'success',
-            feedData: x
+        if (transformPasswd('editor', req.passwd) !== x?.passwd) {
+            return ({
+                type: 'wrongPasswd'
+            })
         }
+
+        return ({
+                type: 'success',
+                feedData: x.data
+            })
     } catch (reason) {
         console.warn('caught in loadFeedData:', reason);
         return {
@@ -70,7 +80,10 @@ export type EditStartResult = {
     type: 'alreadyEdited'
 }
 
-export async function editStart(id: string, passwd: string, force: boolean): Promise<EditStartResult> {
+export async function editStart(req: EditStartReq): Promise<EditStartResp> {
+    const id = req.id;
+    const passwd = req.passwd;
+    const force = req.force;
     const transformedPasswd = transformPasswd('editor', passwd);
 
     // id, passwd und editing === false pruefen, dabei editing auf true updaten
@@ -153,18 +166,13 @@ export async function editStart(id: string, passwd: string, force: boolean): Pro
     }
 }
 
-export type EditFinishResult = {
-    type: 'success' | 'notFound' | 'wrongPasswd'
-} | {
-    type: 'error';
-    error: string;
-}
-
-export async function editFinish(feedData: FeedData, passwd: string): Promise<EditFinishResult> {
+export async function editFinish(req: EditFinishReq): Promise<EditFinishResp> {
     const client = await clientPromise;
     const col = client.db('simple-feed').collection<FeedDataInDb>('feeds');
     const numTries = 7;
     let tries: number = numTries;
+    const feedData = req.feedData;
+    const passwd = req.passwd;
 
     while (--tries >= 0) {
         const findRes = await col.findOne<{ data: FeedData; version: number; feedArchive: FeedData[] }>({
@@ -187,7 +195,7 @@ export async function editFinish(feedData: FeedData, passwd: string): Promise<Ed
         const oldFeedData = findRes.data;
         const oldFeedArchive = findRes.feedArchive;
         const newFeedArchive = oldFeedArchive.length >= 8
-            ? [...oldFeedArchive.slice(oldFeedArchive.length - 8), oldFeedData]
+            ? [...oldFeedArchive.slice(oldFeedArchive.length - 7), oldFeedData]
             : [...oldFeedArchive, oldFeedData]
 
         const updateRes = await col.updateOne({

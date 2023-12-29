@@ -6,6 +6,7 @@ import FeedData from "../_lib/FeedData";
 import { AddFeedReq, AddFeedResp } from "../_lib/admin/addFeed";
 import { EditStartReq, EditStartResp } from "../_lib/admin/editStart";
 import { EditFinishReq, EditFinishResp } from "../_lib/admin/editFinish";
+import { myFetchPost } from "../_lib/apiRoutes";
 
 type AdminState = {
     type: 'deciding'
@@ -53,10 +54,7 @@ export default function Admin() {
             adminPasswd: adminPasswd,
             feedPasswd: feedPasswd,
         }
-        fetch(`/api/admin/addFeed`, {
-            method: 'POST',
-            body: JSON.stringify(addFeedReq),
-        }).then(res => res.json()).then((addFeedResp: AddFeedResp) => {
+        myFetchPost<AddFeedReq, AddFeedResp>(`/api/admin/addFeed`, addFeedReq).then((addFeedResp) => {
             switch (addFeedResp.type) {
                 case 'error':
                     alert('Server-Fehler beim Hinzufügen des neuen Feeds: ' + addFeedResp.error);
@@ -106,10 +104,7 @@ export default function Admin() {
                 passwd: passwd ?? '',
                 force: force
             }
-            fetch('/api/admin/editStart', {
-                method: 'POST',
-                body: JSON.stringify(editStartReq)
-            }).then(resp => resp.json()).then((editStartResp: EditStartResp) => {
+            myFetchPost<EditStartReq, EditStartResp>('/api/admin/editStart', editStartReq).then((editStartResp) => {
                 switch (editStartResp.type) {
                     case 'alreadyEdited':
                         const confirmed = confirm(`Der Feed ${id} wird gerade oder wurde kürzlich von jemand bearbeitet. Trotzdem jetzt bearbeiten? (Falls jemand parallel ändert, können Eingaben verlogen gehen...)`);
@@ -170,7 +165,7 @@ export default function Admin() {
             }
             {
                 adminState.type === 'editing' &&
-                <FeedComp admin={true} editedId={adminState.editedId} onNotFound={() => {
+                <FeedComp admin={true} id={adminState.editedId} onNotFound={() => {
                     setAdminState({
                         type: 'deciding'
                     });
@@ -189,10 +184,7 @@ export default function Admin() {
                             passwd: passwd
                         }
                         console.log('will fetch /api/admin/editFinish with editFinishReq', editFinishReq);
-                        fetch('/api/admin/editFinish', {
-                            method: 'POST',
-                            body: JSON.stringify(editFinishReq)
-                        }).then(resp => resp.json()).then((editFinishResp: EditFinishResp) => {
+                        myFetchPost<EditFinishReq, EditFinishResp>('/api/admin/editFinish', editFinishReq).then((editFinishResp) => {
                             switch (editFinishResp.type) {
                                 case 'notFound':
                                     alert('Der Feed ' + feedData._id + ' konnte nicht gespeichert werden, da er nicht in der Datenbank gefunden wurde.');

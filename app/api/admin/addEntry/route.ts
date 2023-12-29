@@ -1,33 +1,16 @@
 import { FeedEntry } from "@/app/_lib/FeedData";
 import { FeedDataInDb } from "@/app/_lib/FeedDataForServer";
+import { AddEntryReq, AddEntryResp } from "@/app/_lib/admin/addEntry";
+import { myPOST } from "@/app/_lib/apiRoutesForServer";
 import { transformPasswd } from "@/app/_lib/hash";
 import clientPromise from "@/app/_lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 
-export type AddEntryReq = {
-    id: string;
-    passwd: string;
-    header: string;
-    imgData: string | null;
-    body: string;
-}
-
-export type AddEntryResp = {
-    type: 'adminActive';
-} | {
-    type: 'success';
-} | {
-    type: 'error';
-    error: string;
-}
-
-export async function POST(req1: NextRequest): Promise<NextResponse<AddEntryResp>> {
-    const reqProm: Promise<AddEntryReq> = req1.json();
+async function addEntry(req: AddEntryReq): Promise<AddEntryResp> {
     const client = await clientPromise;
     const db = client.db('simple-feed');
     const col = db.collection<FeedDataInDb>('feeds');
 
-    const req = await reqProm;
 
     // laden, version merken
     // updaten mit check auf version und editing
@@ -49,23 +32,23 @@ export async function POST(req1: NextRequest): Promise<NextResponse<AddEntryResp
         })
     
         if (findRes == null) {
-            return NextResponse.json({
+            return {
                 type: 'error',
                 error: 'Feed with that id not found'
-            })
+            }
         }
     
         const transformedPw = transformPasswd('editor', req.passwd);
     
         if (findRes.passwd !== transformedPw) {
-            return NextResponse.json({
+            return ({
                 type: 'error',
                 error: 'Wrong password'
             })
         }
     
         if (findRes.editingSince != null) {
-            return NextResponse.json({
+            return ({
                 type: 'adminActive'
             })
         }
@@ -103,15 +86,20 @@ export async function POST(req1: NextRequest): Promise<NextResponse<AddEntryResp
         if (!updateRes.acknowledged) continue;
         if (updateRes.matchedCount !== 1) continue;
 
-        return NextResponse.json({
+        return ({
             type: 'success'
         })
      
     }
 
    
-    return NextResponse.json({
+    return ({
         type: 'error',
         error: 'Datenbank-Update wiederholt fehlgeschlagen'
     });
+
+}
+
+export async function POST(req: NextRequest) {
+    return myPOST<AddEntryReq, AddEntryResp>(req, addEntry);
 }

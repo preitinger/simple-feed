@@ -1,12 +1,12 @@
 'use client';
 
 import { MutableRefObject, useRef, useState } from "react";
-import FeedComp from "./_components/FeedComp";
+import FeedComp from "../../_components/FeedComp";
 import { useRouter } from "next/navigation";
 import styles from './page.module.css';
-import simpleFeedVersion from "./_lib/simpleFeedVersion";
+import simpleFeedVersion from "../../_lib/simpleFeedVersion";
 
-export default function Page() {
+export default function Page({ params }: { params: { feedId: string } }) {
 
     const router = useRouter();
 
@@ -21,7 +21,7 @@ export default function Page() {
             <div className={styles.topRight}>
                 v{simpleFeedVersion} <button onClick={onRepair}>Repair</button>
             </div>
-            <FeedComp />
+            <FeedComp id={params.feedId} />
 
         </div>
     );
