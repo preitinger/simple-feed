@@ -446,6 +446,7 @@ async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | n
     const body: LoadFeedDataReq = {
         id: id
     }
+    alert('before fetch for body ' + JSON.stringify(body));
     return fetch(url, {
         method: 'POST',
         body: JSON.stringify(body),
