@@ -453,7 +453,11 @@ async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | n
     }).then(
         res => res.json()
     ).then((j: MyResp<LoadFeedDataResp>) => {
-        if (signal?.aborted) return null;
+        if (signal?.aborted) {
+            alert('fetchFeed returning null because aborted')
+            return null;
+        }
+        alert('response of /api/feed/load: ' + JSON.stringify(j));
         switch (j.type) {
             case 'error':
                 console.error('error response from ' + url + ': ', j.error);
