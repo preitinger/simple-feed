@@ -673,6 +673,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             if (passwd == null) return;
             fetchFeed(id, abortControllerRef.current?.signal).then((feed: FeedData | null) => {
                 if (feed == null) {
+                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}"`)
                     startSetup();
                 } else {
                     try {
