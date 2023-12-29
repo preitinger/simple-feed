@@ -2,77 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import styles from './page.module.css'
-import { resizeImage } from '@/app/_lib/image';
 import { useRouter } from 'next/navigation';
 import { myFetchPost } from '@/app/_lib/apiRoutes';
 import { AddEntryReq, AddEntryResp } from '@/app/_lib/admin/addEntry';
-
-interface TextInputProps {
-    id: string;
-    area?: boolean;
-    type?: string;
-    label: string;
-    value: string;
-    onChange: (newValue: string) => void;
-}
-function TextInputComp(props: TextInputProps) {
-    return (
-        <div>
-            <label htmlFor={props.id}>{props.label}</label>
-            {
-                props.area ?
-                    <textarea value={props.value} onChange={(e) => props.onChange(e.target.value)} />
-                    :
-                    <input type={props.type ?? 'text'} id={props.id} value={props.value}
-                        onChange={(e) => {
-                            props.onChange(e.target.value);
-                        }}
-                    />
-
-            }
-        </div>
-    )
-}
-
-interface ImgInputProps {
-    id: string;
-    label: string;
-    value: string | null;
-    onChange: (newValue: string | null) => void;
-}
-
-function ImgInputComp(props: ImgInputProps) {
-    return (
-        <div>
-            <label>{props.label}</label>
-            {
-                props.value != null &&
-                <img src={props.value} alt='bla' />
-            }
-            <label className={styles.imgUploadLabel} htmlFor={props.id}><span>Bild suchen ...</span>
-                <input type='file' id={props.id} onChange={async (e) => {
-                    const files = e.target.files;
-                    if (files != null && files.length >= 1) {
-                        const file: File | null = files.item(0)
-                        if (file == null) return
-                        // if (file.size > (128 << 10)) {
-                        //     alert('Bitte keine Dateien größer als 128kB.');
-                        //     return;
-                        // }
-                        // const newImg = await blobToBase64(file);
-                        const newImg = await resizeImage(file, 400)
-                        props.onChange(newImg);
-                    }
-
-                }} />
-            </label>
-            {
-                props.value != null &&
-                <button onClick={() => props.onChange(null)}>Bild entfernen</button>
-            }
-        </div>
-    )
-}
+import TextInputComp from '@/app/_components/TextInputComp';
+import ImgInputComp from '@/app/_components/ImgInputComp';
 
 export default function Page({ params }: { params: { feedId: string } }) {
     const [header, setHeader] = useState<string>('');
