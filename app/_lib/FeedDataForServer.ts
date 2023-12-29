@@ -36,6 +36,7 @@ export async function loadFeedData(req: LoadFeedDataReq): Promise<LoadFeedDataRe
                 type: 'notFound'
             })
         }
+
         if (transformPasswd('editor', req.passwd) !== x?.passwd) {
             return ({
                 type: 'wrongPasswd'

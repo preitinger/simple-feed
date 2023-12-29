@@ -287,13 +287,23 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
             }
             {
                 props.editState.type === 'entry' && props.editState.idx === props.idx && props.editState.editing === 'header'
-                    ? <Input ref={ref} key='editingInput' value={props.editedText} onChange={(e) => {
-                        props.setEditedText(e.target.value);
-                    }} onEnter={props.onEnter} onCancel={props.onCancel} />
-                    :
-                    <>
-                        <h3>{entry?.header}</h3>
+                    ? <>
+                        <Input ref={ref} key='editingInput' value={props.editedText} onChange={(e) => {
+                            props.setEditedText(e.target.value);
+                        }} onEnter={props.onEnter} onCancel={props.onCancel} />
+                        <span>{entry?.ms != null ? ' - ' + formatDate(new Date(entry?.ms)) : ''}</span>
                     </>
+                    : props.editState.type === 'entry' && props.editState.idx === props.idx && props.editState.editing === 'date' ?
+                        <>
+                            <span>{entry?.header} - </span>
+                            <Input ref={ref} key='editingInput' value={props.editedText} onChange={(e) => {
+                                props.setEditedText(e.target.value);
+                            }} onEnter={props.onEnter} onCancel={props.onCancel} />
+                        </>
+                        :
+                        <>
+                            <h3>{entry?.header} {entry?.ms != null ? ' - ' + formatDate(new Date(entry?.ms)) : ''}</h3>
+                        </>
             }
 
             {
@@ -501,7 +511,7 @@ interface EditBirthdayState {
 interface EditEntryState {
     type: 'entry';
     idx: number;
-    editing: 'header' | 'body';
+    editing: 'header' | 'date' | 'body';
 }
 
 interface MoveEntryState {
@@ -865,6 +875,26 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                                 feedEntries: feedData.feedEntries.map((e, i) => i === editState.idx ? ({
                                     ...e,
                                     header: editedText,
+                                }) : e)
+                            },
+                            editState: {
+                                type: 'entry',
+                                idx: editState.idx,
+                                editing: 'date',
+                                dirty: true
+                            }
+                        })
+                        const ms = feedData.feedEntries[editState.idx].ms;
+                        setEditedText(ms == null ? '' : new Date(ms).toJSON());
+                        break;
+                    case 'date':
+                        setState({
+                            ...state,
+                            feedData: {
+                                ...feedData,
+                                feedEntries: feedData.feedEntries.map((e, i) => i === editState.idx ? ({
+                                    ...e,
+                                    ms: Date.parse(editedText)
                                 }) : e)
                             },
                             editState: {

@@ -71,6 +71,7 @@ export interface FeedEntry {
     header: string;
     imgData?: string;
     body: string;
+    ms?: number;
 }
 
 export default interface FeedData {

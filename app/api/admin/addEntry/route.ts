@@ -69,6 +69,7 @@ async function addEntry(req: AddEntryReq): Promise<AddEntryResp> {
                 'data.feedEntries': {
                     $each: [{
                         header: req.header,
+                        ms: Date.now(),
                         imgData: req.imgData ?? undefined,
                         body: req.body
                     }],
