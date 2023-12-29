@@ -4,6 +4,7 @@ import { MutableRefObject, useRef, useState } from "react";
 import FeedComp from "./_components/FeedComp";
 import { useRouter } from "next/navigation";
 import styles from './page.module.css';
+import simpleFeedVersion from "./_lib/simpleFeedVersion";
 
 export default function Page() {
 
@@ -18,7 +19,7 @@ export default function Page() {
     return (
         <div>
             <div className={styles.topRight}>
-                <button onClick={onRepair}>Repair</button>
+                v{simpleFeedVersion} <button onClick={onRepair}>Repair</button>
             </div>
             <FeedComp />
 
