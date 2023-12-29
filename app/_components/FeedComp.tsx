@@ -435,21 +435,22 @@ function dateMonthOf(d: Date): DateMonth {
 
 async function fetchFeed(id: string, signal?: AbortSignal): Promise<FeedData | null> {
     const url = `/api/feed/load`;
-    const t = typeof(id);
+    const t = typeof (id);
     console.log('typeof id: ', t);
     if (t !== 'string') {
         console.error('typeof id: ', t)
         return null;
     }
     // console.log('fetchFeed: url=', url);
+    alert('before fetch for url ' + url);
     const body: LoadFeedDataReq = {
         id: id
     }
-    return fetch(url, { 
+    return fetch(url, {
         method: 'POST',
         body: JSON.stringify(body),
         signal: signal
-     }).then(
+    }).then(
         res => res.json()
     ).then((j: MyResp<LoadFeedDataResp>) => {
         if (signal?.aborted) return null;
@@ -722,8 +723,8 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             <div className={`${styles.entry}`}>
                 {
                     today != null ?
-                    <h3>Heute: {formatWeekdayDe(today?.getDay())}, der {today?.toLocaleString()}</h3>
-                    : <span>Lade Daten ...</span>
+                        <h3>Heute: {formatWeekdayDe(today?.getDay())}, der {today?.toLocaleString()}</h3>
+                        : <span>Lade Daten ...</span>
                 }
             </div>
         )
@@ -1109,7 +1110,7 @@ export default function FeedComp({ admin, editedId, onNotFound, onAbort, onSave,
             {
                 feedData != null &&
                 <NotesComp entryClass={styles.entry} feedId={feedData?._id} />
-                }
+            }
             {
                 admin && <button id='addEntryButton' onClick={onAddEntry}>Eintrag hinzufügen</button>
             }
