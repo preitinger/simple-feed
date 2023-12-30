@@ -167,6 +167,8 @@ export default function NotesComp(props: NotesProps) {
             }).catch(reason => {
                 alert('caught after fetch: ' + JSON.stringify(reason) + ' with aborted=' + aborted); // TODO remove me!
                 if (aborted) return;
+                const isEqual = isDeepStrictEqual(reason, {});
+                alert('isDeepStrictEqual=' + isDeepStrictEqual);
                 if (isDeepStrictEqual(reason, {})) {
                     // wahrscheinlich nur offline
                     setLoading(false);
