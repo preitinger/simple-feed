@@ -168,6 +168,7 @@ export default function NotesComp(props: NotesProps) {
                 alert('caught after fetch: ' + JSON.stringify(reason) + ' with aborted=' + aborted); // TODO remove me!
                 alert('2nd alert for abort=' + aborted);
                 if (aborted) return;
+                alert('after "if abofrted"');
                 const isEqual = isDeepStrictEqual(reason, {});
                 alert('isDeepStrictEqual=' + isEqual);
                 if (isEqual) {
