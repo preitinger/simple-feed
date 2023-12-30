@@ -169,8 +169,8 @@ export default function NotesComp(props: NotesProps) {
                 alert('2nd alert for abort=' + aborted);
                 if (aborted) return;
                 const isEqual = isDeepStrictEqual(reason, {});
-                alert('isDeepStrictEqual=' + isDeepStrictEqual);
-                if (isDeepStrictEqual(reason, {})) {
+                alert('isDeepStrictEqual=' + isEqual);
+                if (isEqual) {
                     // wahrscheinlich nur offline
                     setLoading(false);
                     return;
