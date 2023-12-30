@@ -148,6 +148,7 @@ export default function NotesComp(props: NotesProps) {
                 }
             }
         }
+        alert('before fetch notes');
         myFetchPost<LoadNotesReq, LoadNotesResp>('/api/notes/load', req, abortController.signal)
             .then((res) => {
                 if (aborted) return;
@@ -164,6 +165,7 @@ export default function NotesComp(props: NotesProps) {
                         alert('Unerwartete Antwort beim Laden der Notizen: ' + JSON.stringify(res));
                 }
             }).catch(reason => {
+                alert('caught after fetch: ' + JSON.stringify(reason)); // TODO remove me!
                 if (aborted) return;
                 if (isDeepStrictEqual(reason, {})) {
                     // wahrscheinlich nur offline
