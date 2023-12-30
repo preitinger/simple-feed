@@ -731,11 +731,12 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                         }
                     }
                 }).catch(reason => {
-                    if (abortController.signal.aborted) {
-                        // console.warn('abgefangen', reason);
-                        return;
-                    }
-                    alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
+                    // Wahrscheinlich gerade einfach nur offline, keine verwirrende Fehlermeldung!
+                    // if (abortController.signal.aborted) {
+                    //     // console.warn('abgefangen', reason);
+                    //     return;
+                    // }
+                    // alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
                 })
             }
         }
