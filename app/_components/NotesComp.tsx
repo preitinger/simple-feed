@@ -164,6 +164,7 @@ export default function NotesComp(props: NotesProps) {
                 switch (res.type) {
                     case 'success':
                         setNotes(res.notes);
+                        localStorage.setItem('notesOffline', res.notes);
                         setLoading(false);
                         break;
                     case 'error':
