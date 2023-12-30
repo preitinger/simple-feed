@@ -165,6 +165,7 @@ export default function NotesComp(props: NotesProps) {
             if (aborted) return;
             if (isDeepStrictEqual(reason, {})) {
                 // wahrscheinlich nur offline
+                setLoading(false);
                 return;
             }
             console.error('Fehler beim Laden der Notizen', reason);
