@@ -79,7 +79,7 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
                 }
                 break;
             case 'error':
-                alert('Error in updateNotes: ' + res.error);
+                alert('Fehler beim Speichern der Notizen: ' + res.error);
                 changeDataCurrent.state = 'offlineIdle';
                 setHint(hintOfflineIdle);
                 localStorage.removeItem('passwd');
@@ -166,7 +166,6 @@ export default function NotesComp(props: NotesProps) {
     
             }
         }
-        alert('before fetch notes');
         myFetchPost<LoadNotesReq, LoadNotesResp>('/api/notes/load', req, abortController.signal)
             .then((res) => {
                 if (aborted) return;
@@ -185,12 +184,8 @@ export default function NotesComp(props: NotesProps) {
                         alert('Unerwartete Antwort beim Laden der Notizen: ' + JSON.stringify(res));
                 }
             }).catch(reason => {
-                alert('caught after fetch: ' + JSON.stringify(reason) + ' with aborted=' + aborted); // TODO remove me!
-                alert('2nd alert for abort=' + aborted);
                 if (aborted) return;
-                alert('after "if abofrted"');
                 const isEqual = (JSON.stringify(reason) === '{}');
-                alert('isEqual=' + isEqual);
                 if (isEqual) {
                     // wahrscheinlich nur offline
                     setLoading(false);
