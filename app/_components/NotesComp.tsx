@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './NotesComp.module.css'
 import { LoadNotesReq, LoadNotesResp, UpdateNotesReq, UpdateNotesResp } from '../_lib/Notes';
 import { MyResp, myFetchPost } from '../_lib/apiRoutes';
+import { deepEqual } from 'assert';
+import { isDeepStrictEqual } from 'util';
 
 export interface NotesProps {
     entryClass: string;
@@ -161,10 +163,12 @@ export default function NotesComp(props: NotesProps) {
             }
         }).catch(reason => {
             if (aborted) return;
+            if (isDeepStrictEqual(reason, {})) {
+                // wahrscheinlich nur offline
+                return;
+            }
             console.error('Fehler beim Laden der Notizen', reason);
             alert('Fehler beim Laden der Notizen: ' + JSON.stringify(reason));
-        }).finally(() => {
-            if (aborted) return;
         })
 
         return () => {
