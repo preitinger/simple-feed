@@ -64,11 +64,11 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
                 switch (changeDataCurrent.state) {
                     case 'fetching':
                         changeDataCurrent.state = 'idle';
-                        localStorage.removeItem('notes');
+                        localStorage.removeItem('notesToSend');
                         setHint('');
                         break;
                     case 'typingWhileFetching':
-                        localStorage.removeItem('notes');
+                        localStorage.removeItem('notesToSend');
                         setChangeData({
                             state: 'typing',
                             to: setMyTimeout(id, passwd, getChangeData, setChangeData, setHint),
@@ -96,19 +96,21 @@ function sendUpdate(id: string, passwd: string, notesList: string[], getChangeDa
 }
 
 const setMyTimeout = (id: string, passwd: string, getChangeData: () => ChangeData, setChangeData: (changeData: ChangeData) => void, setHint: (hint: string) => void) => setTimeout(() => {
-    const notesListStr = localStorage.getItem('notes');
+    const notesListStr = localStorage.getItem('notesToSend');
     const notesList: string[] = notesListStr == null ? [] : JSON.parse(notesListStr);
     const changeRefCurrent = getChangeData()
     if (changeRefCurrent.state !== 'typing') {
         throw new Error('timeout when in state ' + changeRefCurrent.state);
     }
-    notesList.push(changeRefCurrent.lastVal.substring(0, 4000));
+    const newNotes: string = changeRefCurrent.lastVal.substring(0, 4000);
+    notesList.push(newNotes);
     if (notesList.length > 8) notesList.splice(0, notesList.length - 8);
     const newNotesListStr = JSON.stringify(notesList);
-    localStorage.setItem('notes', newNotesListStr);
+    localStorage.setItem('notesToSend', newNotesListStr);
 
     if (notesList.length === 0) return;
 
+    localStorage.setItem('notesOffline', newNotes);
     sendUpdate(id, passwd, notesList, getChangeData, setChangeData, setHint);
 }, 2000);
 
@@ -131,7 +133,7 @@ export default function NotesComp(props: NotesProps) {
             passwd: passwd
         }
         {
-            const notesFromStorageStr = localStorage.getItem('notes');
+            const notesFromStorageStr = localStorage.getItem('notesToSend');
             if (notesFromStorageStr != null) {
                 const notesList = JSON.parse(notesFromStorageStr);
                 if (notesList.length > 0) {
@@ -143,6 +145,13 @@ export default function NotesComp(props: NotesProps) {
                     }, (hint: string) => {
                         setHint(hint);
                     });
+                    setLoading(false);
+                    return;
+                }
+            } else {
+                const notesOffline = localStorage.getItem('notesOffline');
+                if (notesOffline != null) {
+                    setNotes(notesOffline ?? '');
                     setLoading(false);
                     return;
                 }
