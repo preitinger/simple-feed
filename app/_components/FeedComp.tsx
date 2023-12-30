@@ -458,44 +458,23 @@ function dateMonthOf(d: Date): DateMonth {
     }
 }
 
-async function fetchFeed(id: string, passwd: string, signal?: AbortSignal): Promise<FeedData | null> {
+async function loadFeedData(id: string, passwd: string, signal?: AbortSignal): Promise<MyResp<LoadFeedDataResp>> {
     const url = `/api/feed/load`;
     const t = typeof (id);
     console.log('typeof id: ', t);
     if (t !== 'string') {
-        console.error('typeof id: ', t)
-        return null;
+        return {
+            type: 'error',
+            error: `Unexpected id: ${JSON.stringify(id)}`
+        }
     }
     // console.log('fetchFeed: url=', url);
     const body: LoadFeedDataReq = {
         id: id,
         passwd: passwd
     }
-    const res = await myFetchPost<LoadFeedDataReq, LoadFeedDataResp>(url, body, signal)
-        .then((j) => {
-            if (signal?.aborted) {
-                return null;
-            }
-            switch (j.type) {
-                case 'error':
-                    console.error('error response from ' + url + ': ', j.error);
-                    return null;
-                case 'notFound':
-                    alert('Feed mit dieser ID nicht gefunden!')
-                    return null;
-                case 'success':
-                    return j.feedData;
-                case 'wrongPasswd':
-                    alert('Falsches Passwort!');
-                    localStorage.removeItem('passwd');
-                    return null;
-            }
-        }).catch(reason => {
-            // probably fetch aborted by abort signal or device offline
-            return null;
-        })
+    return await myFetchPost<LoadFeedDataReq, LoadFeedDataResp>(url, body, signal);
 
-    return res;
 }
 
 interface EditNoneState {
@@ -560,7 +539,7 @@ interface State {
 function organizePasswd(id: string) {
     let passwd = localStorage.getItem('passwd');
     if (passwd == null) {
-        passwd = prompt('Passwort für ' + id);
+        passwd = prompt(`Passwort für Feed ${id}`, '');
         if (passwd != null) localStorage.setItem('passwd', passwd);
     }
 
@@ -589,7 +568,7 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
     const [usedSpace, setUsedSpace] = useState<number>(0);
     const [editedText, setEditedText] = useState<string>('');
     const [today, setToday] = useState<Date | null>(null);
-    const [settingUp, setSettingUp] = useState<boolean>(false);
+    // const [settingUp, setSettingUp] = useState<boolean>(false);
     const [editedBirthdayIdx, setEditedBirthdayIdx] = useState<number>(-1);
     const abortControllerRef = useRef<AbortController | null>(null);
     const editedTextRef = useRef<HTMLInputElement | null>(null);
@@ -629,72 +608,134 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
         if (admin) {
             const passwd = organizePasswd(id);
             if (passwd == null) return;
-            fetchFeed(id, passwd, abortController.signal).then(feed => {
-                if (abortController.signal.aborted) return;
-                if (feed == null) {
-                    console.log('alerting in "start effect"');
-                    alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}" Tippfehler?`)
-                    setState(s => ({
-                        ...s,
-                        feedData: null
-                    }))
-                    if (onNotFound != null) {
-                        onNotFound();
-                    }
+
+            ///////
+            loadFeedData(id, passwd, abortController.signal).then(j => {
+                if (abortController.signal.aborted) {
                     return;
                 }
-                try {
-                    localStorage.setItem('feed', JSON.stringify(feed));
-                } catch (reason) {
-                    console.log(reason);
+                switch (j.type) {
+                    case 'error':
+                        handleError(j.error);
+                        if (onNotFound != null) {
+                            onNotFound();
+                        }
+                        return;
+                    case 'notFound':
+                        alert('Feed mit dieser ID nicht gefunden!')
+                        if (onNotFound != null) {
+                            onNotFound();
+                        }
+                        return;
+                    case 'success':
+                        try {
+                            localStorage.setItem('feed', JSON.stringify(j.feedData));
+                        } catch (reason) {
+                            console.log(reason);
+                        }
+                        setUsedSpace(localStorage.length);
+                        setState(s => ({
+                            ...s,
+                            feedData: j.feedData
+                        }));
+                        return;
+                    case 'wrongPasswd':
+                        alert('Falsches Passwort!');
+                        localStorage.removeItem('passwd');
+                        if (onNotFound != null) {
+                            onNotFound();
+                        }
+                        return;
                 }
-                setUsedSpace(localStorage.length);
-                setState(s => ({
-                    ...s,
-                    feedData: feed
-                }));
+            }).catch(reason => {
+                if (abortControllerRef.current?.signal.aborted) return;
+                alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
             })
+            ///////
+
+            // loadFeedData(id, passwd, abortController.signal).then(feed => {
+            //     if (abortController.signal.aborted) return;
+            //     if (feed == null) {
+            //         console.log('alerting in "start effect"');
+            //         alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}" Tippfehler?`)
+            //         setState(s => ({
+            //             ...s,
+            //             feedData: null
+            //         }))
+            //         if (onNotFound != null) {
+            //             onNotFound();
+            //         }
+            //         return;
+            //     }
+            //     try {
+            //         localStorage.setItem('feed', JSON.stringify(feed));
+            //     } catch (reason) {
+            //         console.log(reason);
+            //     }
+            //     setUsedSpace(localStorage.length);
+            //     setState(s => ({
+            //         ...s,
+            //         feedData: feed
+            //     }));
+            // })
         } else if (typeof (localStorage) !== 'undefined') {
             const feedJson = localStorage.getItem('feed');
             // console.log('feedJson1', feedJson);
             // console.log('feedJson == null', feedJson == null);
             if (feedJson == null) {
-                setSettingUp(true);
+                console.log('before startSetup() in effect when no admin');
+                startSetup();
                 // console.log('settingUp to true');
             } else {
                 // console.log('feedJson', feedJson);
                 const feed: FeedData = JSON.parse(feedJson);
                 if (feed._id !== id) {
-                    setSettingUp(true);
+                    localStorage.removeItem('feed');
+                    localStorage.removeItem('passwd');
+                    startSetup();
                     return;
                 }
                 setState(s => ({
                     ...s,
                     feedData: feed
                 }));
-                if (feed == null) {
-                    setSettingUp(true);
-                    console.log('settingUp to true ([b])');
-                    return;
-                }
-                // console.log('before fetchFeed');
+
                 const passwd = organizePasswd(id);
                 if (passwd == null) return;
-                fetchFeed(id, passwd, abortController.signal).then(feed => {
+                loadFeedData(id, passwd, abortController.signal).then(j => {
                     if (abortController.signal.aborted) return;
-                    if (feed == null) {
+                    switch (j.type) {
+                        case 'error':
+                            handleError(j.error);
+                            break;
+                        case 'notFound':
+                            alert(`Feed "${id}" nicht auf dem Server gefunden!`);
+                            startSetup();
+                            break;
+                        case 'wrongPasswd':
+                            alert(`Falsches Passwort für Feed "${id}"!`);
+                            startSetup();
+                            break;
+                        case 'success': {
+                            const feed = j.feedData;
+                            try {
+                                localStorage.setItem('feed', JSON.stringify(feed));
+                            } catch (reason) {
+                                console.log(reason);
+                            }
+                            setState(s => ({
+                                ...s,
+                                feedData: feed
+                            }))
+                            break;
+                        }
+                    }
+                }).catch(reason => {
+                    if (abortController.signal.aborted) {
+                        // console.warn('abgefangen', reason);
                         return;
                     }
-
-                    try {
-                        localStorage.setItem('feed', JSON.stringify(feed));
-                    } catch (reason) {
-                        console.log(reason);
-                    }
-                    setState(s => ({
-                        ...s,
-                        feedData: feed
-                    }))
+                    alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
                 })
             }
         }
@@ -703,16 +744,27 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
             console.log('aborting effect when today1', today1);
             abortController.abort();
         }
-    }, [admin, id, onNotFound])
+    },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [admin, id, onNotFound]
+    )
 
-    useEffect(() => {
-        function startSetup() {
-            if (typeof (localStorage) !== 'object') return;
+    function handleError(error: string) {
+        alert(`Fehler beim Laden der News: ${error}`);
+    }
 
-            const passwd = prompt('Feed Passwort', '');
-            if (passwd == null) return;
-            fetchFeed(id, passwd, abortControllerRef.current?.signal).then((feed: FeedData | null) => {
-                if (feed == null) {
+    function startSetup() {
+        if (typeof (localStorage) !== 'object') return;
+
+        const passwd = organizePasswd(id);
+        if (passwd == null) return;
+        loadFeedData(id, passwd, abortControllerRef.current?.signal).then(j => {
+            switch (j.type) {
+                case 'error':
+                    handleError(j.error);
+                    break;
+                case 'notFound':
+                    alert(`Feed "${id}" nicht gefunden!`);
                     setState({
                         feedData: null,
                         editState: {
@@ -720,8 +772,22 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                             dirty: false
                         }
                     })
-                    setSettingUp(true);
-                } else {
+                    startSetup();
+                    break;
+                case 'wrongPasswd':
+                    alert(`Falsches Passwort für Feed "${id}"!`);
+                    localStorage.removeItem('passwd');
+                    setState({
+                        feedData: null,
+                        editState: {
+                            type: 'none',
+                            dirty: false
+                        }
+                    })
+                    startSetup();
+                    break;
+                case 'success':
+                    const feed = j.feedData;
                     try {
                         localStorage.setItem('feed', JSON.stringify(feed));
                     } catch (reason) {
@@ -732,16 +798,19 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                         ...s,
                         feedData: feed
                     }))
-                    setSettingUp(false);
-                }
-            });
-        }
-        console.log('useEffect for setup');
-        if (settingUp) {
-            startSetup();
-        }
+                    break;
+                default:
+                    alert('Nicht fertig implementiert?!');
+                    break;
+            }
+        }).catch(reason => {
+            if (abortControllerRef.current?.signal.aborted) {
+                return;
+            }
+            alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
+        })
 
-    }, [settingUp])
+    }
 
     useEffect(() => {
         const interval = setInterval(() => {
