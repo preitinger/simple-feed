@@ -99,7 +99,7 @@ const setMyTimeout = (id: string, passwd: string, getChangeData: () => ChangeDat
     const notesListStr = localStorage.getItem('notes');
     const notesList: string[] = notesListStr == null ? [] : JSON.parse(notesListStr);
     const changeRefCurrent = getChangeData()
-    if (changeRefCurrent.state !== 'typing') { 
+    if (changeRefCurrent.state !== 'typing') {
         throw new Error('timeout when in state ' + changeRefCurrent.state);
     }
     notesList.push(changeRefCurrent.lastVal.substring(0, 4000));
@@ -149,28 +149,30 @@ export default function NotesComp(props: NotesProps) {
             }
         }
         myFetchPost<LoadNotesReq, LoadNotesResp>('/api/notes/load', req, abortController.signal)
-        .then((res) => {
-            if (aborted) return;
-            switch (res.type) {
-                case 'success':
-                    setNotes(res.notes);
+            .then((res) => {
+                if (aborted) return;
+                switch (res.type) {
+                    case 'success':
+                        setNotes(res.notes);
+                        setLoading(false);
+                        break;
+                    case 'error':
+                        alert('Beim Laden der Notizen ist folgender Fehler aufgetreten: ' + res.error);
+                        localStorage.removeItem('passwd');
+                        break;
+                    default:
+                        alert('Unerwartete Antwort beim Laden der Notizen: ' + JSON.stringify(res));
+                }
+            }).catch(reason => {
+                if (aborted) return;
+                if (isDeepStrictEqual(reason, {})) {
+                    // wahrscheinlich nur offline
                     setLoading(false);
-                    break;
-                case 'error':
-                    alert('Beim Laden der Notizen ist folgender Fehler aufgetreten: ' + res.error);
-                    localStorage.removeItem('passwd');
-                    break;
-            }
-        }).catch(reason => {
-            if (aborted) return;
-            if (isDeepStrictEqual(reason, {})) {
-                // wahrscheinlich nur offline
-                setLoading(false);
-                return;
-            }
-            console.error('Fehler beim Laden der Notizen', reason);
-            alert('Fehler beim Laden der Notizen: ' + JSON.stringify(reason));
-        })
+                    return;
+                }
+                console.error('Fehler beim Laden der Notizen', reason);
+                alert('Fehler beim Laden der Notizen: ' + JSON.stringify(reason));
+            })
 
         return () => {
             aborted = true;
