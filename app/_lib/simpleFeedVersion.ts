@@ -1,2 +1,2 @@
-const simpleFeedVersion = '0.16';
+const simpleFeedVersion = '0.17';
 export default simpleFeedVersion;
