@@ -58,6 +58,7 @@ export default function Admin() {
             switch (addFeedResp.type) {
                 case 'error':
                     alert('Server-Fehler beim Hinzufügen des neuen Feeds: ' + addFeedResp.error);
+                    onAdd();
                     return;
                 case 'idInUse':
                     alert('Die gewünschte Id ist bereits vergeben.');
