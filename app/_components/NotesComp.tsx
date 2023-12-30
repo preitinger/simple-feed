@@ -110,6 +110,7 @@ const setMyTimeout = (id: string, passwd: string, getChangeData: () => ChangeDat
 
     if (notesList.length === 0) return;
 
+    localStorage.setItem('notesId', id);
     localStorage.setItem('notesOffline', newNotes);
     sendUpdate(id, passwd, notesList, getChangeData, setChangeData, setHint);
 }, 2000);
@@ -133,28 +134,36 @@ export default function NotesComp(props: NotesProps) {
             passwd: passwd
         }
         {
-            const notesFromStorageStr = localStorage.getItem('notesToSend');
-            if (notesFromStorageStr != null) {
-                const notesList = JSON.parse(notesFromStorageStr);
-                if (notesList.length > 0) {
-                    setNotes(notesList[notesList.length - 1]);
-                    sendUpdate(props.feedId, passwd, notesList, () => {
-                        return changeRef.current;
-                    }, (changeData: ChangeData) => {
-                        changeRef.current = changeData
-                    }, (hint: string) => {
-                        setHint(hint);
-                    });
-                    setLoading(false);
-                    return;
-                }
+            const notesId = localStorage.getItem("notesId");
+            if (notesId == null || notesId !== props.feedId) {
+                localStorage.removeItem('notesId');
+                localStorage.removeItem('notesToSend');
+                localStorage.removeItem('notesOffline');
             } else {
-                const notesOffline = localStorage.getItem('notesOffline');
-                if (notesOffline != null) {
-                    setNotes(notesOffline ?? '');
-                    setLoading(false);
-                    return;
+                const notesFromStorageStr = localStorage.getItem('notesToSend');
+                if (notesFromStorageStr != null) {
+                    const notesList = JSON.parse(notesFromStorageStr);
+                    if (notesList.length > 0) {
+                        setNotes(notesList[notesList.length - 1]);
+                        sendUpdate(props.feedId, passwd, notesList, () => {
+                            return changeRef.current;
+                        }, (changeData: ChangeData) => {
+                            changeRef.current = changeData
+                        }, (hint: string) => {
+                            setHint(hint);
+                        });
+                        setLoading(false);
+                        return;
+                    }
+                } else {
+                    const notesOffline = localStorage.getItem('notesOffline');
+                    if (notesOffline != null) {
+                        setNotes(notesOffline);
+                        setLoading(false);
+                        return;
+                    }
                 }
+    
             }
         }
         alert('before fetch notes');
@@ -164,6 +173,7 @@ export default function NotesComp(props: NotesProps) {
                 switch (res.type) {
                     case 'success':
                         setNotes(res.notes);
+                        localStorage.setItem('notesId', props.feedId);
                         localStorage.setItem('notesOffline', res.notes);
                         setLoading(false);
                         break;
