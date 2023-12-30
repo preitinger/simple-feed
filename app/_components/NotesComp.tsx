@@ -165,7 +165,7 @@ export default function NotesComp(props: NotesProps) {
                         alert('Unerwartete Antwort beim Laden der Notizen: ' + JSON.stringify(res));
                 }
             }).catch(reason => {
-                alert('caught after fetch: ' + JSON.stringify(reason)); // TODO remove me!
+                alert('caught after fetch: ' + JSON.stringify(reason) + ' with aborted=' + aborted); // TODO remove me!
                 if (aborted) return;
                 if (isDeepStrictEqual(reason, {})) {
                     // wahrscheinlich nur offline
