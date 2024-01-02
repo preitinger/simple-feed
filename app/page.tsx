@@ -2,16 +2,31 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+type DebugData = {
+    devicePixelRatio: string;
+}
 
 export default function Page() {
     const router = useRouter();
+    const [debugData, setDebugData] = useState<DebugData>({
+        devicePixelRatio: 'nicht berechenbar'
+    });
 
     useEffect(() => {
         const setupId = localStorage.getItem('setupId');
         if (setupId == null) return;
         router.replace(`/feed/${setupId}`);
     }, [router]);
+
+    useEffect(() => {
+        if (typeof(window) !== 'undefined') {
+            setDebugData({
+                devicePixelRatio: window.devicePixelRatio.toString()
+            })
+        }
+    }, [])
 
     return (
         <div>
@@ -33,6 +48,7 @@ export default function Page() {
             <p>
                 Hier kann man einen Feed so <Link href='/setup'>einrichten</Link>, dass er beim Start dieser Webapp angezeigt wird.
             </p>
+            <p>devicePixelRatio: {debugData.devicePixelRatio}</p>
         </div>
     )
 }

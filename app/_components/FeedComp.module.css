@@ -1,10 +1,22 @@
-
 .entry {
-    margin: 2em;
-    border:1px solid black;
-    border-radius: 1em;
-    padding: 1em;
+    display: flex;
+    flex-direction: column;
     background-color: rgb(255, 251, 201);
+    border-radius: 1em;
+}
+
+@media (min-width: 450px) {
+    .entry {
+        margin: 2em;
+        border:1px solid black;
+    }
+}
+
+@media (max-width: 449px) {
+    .entry {
+        margin: 2em 0;
+        /* border-bottom: 1px solid black; */
+    }
 }
 
 .entryMoving {
@@ -64,12 +76,12 @@
 .testBorder {
     border: 1px solid red;
 }
-.img {
-    /* width: 100%; */
-    width: auto;
-    height: auto;
-}
 .remainingSpace {
     font-size: small;
     color: gray;
+}
+
+.imgDiv {
+    display: flex;
+    align-self: center;
 }
