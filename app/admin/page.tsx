@@ -157,6 +157,7 @@ export default function Admin() {
 
     return (
         <div>
+            <h1>Administrate simple feed(s)</h1>
             {
                 adminState.type === 'deciding' &&
                 <div>

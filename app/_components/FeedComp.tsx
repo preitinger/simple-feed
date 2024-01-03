@@ -258,11 +258,13 @@ const AllBirthdays = forwardRef<HTMLInputElement | null, AllBirthdaysProps>(func
                 </tbody>
             </table>
             {admin && (
-                <button id='addBirthdayButton' onClick={(e) => {
-                    e.stopPropagation();
-                    e.bubbles = false;
-                    addBirthday();
-                }}>Geburtstag hinzufügen</button>
+                <div>
+                    <button id='addBirthdayButton' onClick={(e) => {
+                        e.stopPropagation();
+                        e.bubbles = false;
+                        addBirthday();
+                    }}>Geburtstag hinzufügen</button>
+                </div>
             )
             }
         </div>
@@ -314,9 +316,11 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
             }
             {
                 props.admin && entry?.imgData != null &&
-                <button onClick={() => {
-                    props.onImgChanged(null);
-                }}>Bild entfernen</button>
+                <div>
+                    <button onClick={() => {
+                        props.onImgChanged(null);
+                    }}>Bild entfernen</button>
+                </div>
             }
             {
                 props.admin && (
