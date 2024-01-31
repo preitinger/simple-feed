@@ -1,20 +1,17 @@
 .topRight {
-    font-size: x-small;
-    display: block;
     position: absolute;
-    right: 1em;
-    top: 1em;
+    top: 1rem;
+    right: 1rem;
     width: auto;
     height: auto;
     color: gray;
+    font-size: xx-small;
 }
+
 .topRight button {
     border: none;
     background: inherit;
-    color: inherit;
-    cursor: pointer;
-}
-
-.topRight button:hover {
+    color: gray;
     text-decoration: underline;
+    cursor: pointer;
 }

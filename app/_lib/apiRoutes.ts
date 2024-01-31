@@ -4,12 +4,13 @@ export type MyResp<MySuccessResp> = MySuccessResp | {
     error: string;
 }
 
-export function myFetchPost<MyReq, MySuccessResp>(
+export async function myFetchPost<MyReq, MySuccessResp>(
     url: string,
     req: MyReq,
     signal?: AbortSignal
 ): Promise<MyResp<MySuccessResp>> {
-    return fetch(url, {
+    return await fetch(url, {
+        headers: { "Content-Type": "application/json" },        
         method: 'POST',
         body: JSON.stringify(req),
         signal: signal

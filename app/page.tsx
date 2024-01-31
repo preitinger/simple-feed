@@ -17,7 +17,7 @@ export default function Page() {
     useEffect(() => {
         const setupId = localStorage.getItem('setupId');
         if (setupId == null) return;
-        router.replace(`/feed/${setupId}`);
+        router.replace(`/feed/${encodeURIComponent(setupId)}`);
     }, [router]);
 
     useEffect(() => {

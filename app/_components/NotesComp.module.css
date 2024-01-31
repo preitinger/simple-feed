@@ -1,19 +1,14 @@
-
-.notesContainer {
-    display: flex;
-    flex-direction: column;
-}
-
 .notes {
-    height: 400px;
-    border-radius: 1em;
+    /* 2em for padding, 2rem for implicit margin by BoxComp.module.css */
+    width: calc(100% - 2em - 2rem);
+    height: 8rem;
     padding: 1em;
-    font-size: large;
+    border-radius: 1rem;
 }
 
 .dirtyHint {
-    color: lightgray;
-    font-size: xx-small;
-    padding: 1em;
+    font-size: x-small;
+    color: gray;
     height: 1em;
+    margin-top: 0;
 }

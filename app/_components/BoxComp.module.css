@@ -1,0 +1,58 @@
+.box {
+    border-radius: 1rem;
+    border: 1px solid black;
+    padding: 0;
+    margin: 0;
+
+    background: rgb(120,135,210);
+    background: linear-gradient(0deg, rgba(120,135,210,1) 0%, rgba(235,189,82,1) 100%);
+
+    background: rgb(143,162,255);
+    background: linear-gradient(0deg, rgba(143,162,255,1) 0%, rgba(255,220,140,1) 100%);    
+
+    background: rgb(143,162,255);
+    background: linear-gradient(0deg, rgb(243, 235, 187) 0%, rgba(255,220,140,1) 100%);    
+}
+
+.selected {
+    background: rgb(143,162,255);
+    background: linear-gradient(0deg, rgb(243, 235, 187) 0%, rgb(255, 186, 140) 100%);
+    outline-offset: 2px;
+    outline-width: 2px;
+    outline-style: solid;
+}
+
+.box > * {
+    margin: 1rem;
+}
+
+
+.box > p {
+    text-align: left;
+}
+
+.box > div {
+    text-align: center;
+    margin: 0;
+}
+
+.box div img {
+    /* text-align: center; */
+    margin: 0;
+}
+
+@media (min-width: 450px) {
+    .box {
+        margin: 2rem;
+    }
+}
+
+@media (max-width: 449px) {
+    .box {
+        margin: 2rem 0;
+    }
+}
+
+.box h2 {
+    font-size: large;
+}

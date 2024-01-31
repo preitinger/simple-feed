@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import styles from './FeedComp.module.css'
-import { ChangeEventHandler, forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { ChangeEvent, ChangeEventHandler, forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import FeedData, { Birthday, BirthdayDate, FeedEntry, LoadFeedDataReq, LoadFeedDataResp, birthdayDifference, compareBirthday, formatBirthdayDate, parseBirthdayDate } from '../_lib/FeedData'
 import { EditStartReq } from '../_lib/admin/editStart';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,9 @@ import { resizeImage } from '../_lib/image';
 import NotesComp from './NotesComp';
 import { formatWeekdayDe } from '../_lib/parsingAndFormatting';
 import { MyResp, myFetchPost } from '../_lib/apiRoutes';
+import ImgInputComp from './ImgInputComp';
+import BoxComp from './BoxComp';
+import RowComp from './RowComp';
 
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
@@ -35,11 +38,11 @@ interface EntryBodyProps {
 
 function EntryBodyComp(props: EntryBodyProps) {
     return (
-        <div>
+        <>
             {
                 props.body.split('\n').map((e, i) => (<p key={i}>{e}</p>))
             }
-        </div>
+        </>
     )
 }
 
@@ -142,14 +145,13 @@ const BirthdayComp = forwardRef<HTMLInputElement | null, EditProps>(function Bir
                 }
             </td>
             {
-                props.admin && !props.noEdit && <>
-                    <td>
+                props.admin && !props.noEdit &&
+                <td>
+                    <RowComp>
                         <button onClick={props.onEdit}>Bearbeiten</button>
-                    </td>
-                    <td>
                         <button onClick={props.onDelete}>Löschen</button>
-                    </td>
-                </>
+                    </RowComp>
+                </td>
             }
         </tr>
         // <tr>
@@ -232,9 +234,9 @@ const AllBirthdays = forwardRef<HTMLInputElement | null, AllBirthdaysProps>(func
     birthdaysWithIdx.sort(compareBirthday)
 
     return (
-        <div className={`${styles.entry}`}>
+        <BoxComp>
 
-            <h3>Alle Geburtstage.</h3>
+            <h2>Alle Geburtstage.</h2>
             <table>
                 <tbody>
                     {
@@ -258,16 +260,16 @@ const AllBirthdays = forwardRef<HTMLInputElement | null, AllBirthdaysProps>(func
                 </tbody>
             </table>
             {admin && (
-                <div>
+                <RowComp>
                     <button id='addBirthdayButton' onClick={(e) => {
                         e.stopPropagation();
                         e.bubbles = false;
                         addBirthday();
                     }}>Geburtstag hinzufügen</button>
-                </div>
+                </RowComp>
             )
             }
-        </div>
+        </BoxComp>
     )
 })
 
@@ -278,13 +280,15 @@ type FeedEntryProps = EditProps & {
 const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(function FeedEntryComp(props, ref) {
     const entry = props.feedData?.feedEntries[props.idx];
     return (
-        <div className={`${styles.entry} ${props.editState.type === 'moveEntry' && props.editState.index === props.idx ? styles.entryMoving : ''}`}>
+        <BoxComp selected={props.editState.type === 'moveEntry' && props.editState.index === props.idx}>
             {
                 props.admin &&
                 <div className={styles.floatRight}>
-                    <button onClick={props.onEdit}>Bearbeiten</button>
-                    <button onClick={props.onDelete}>Löschen</button>
-                    <button onClick={props.onMove}>Verschieben</button>
+                    <RowComp>
+                        <button onClick={props.onEdit}>Bearbeiten</button>
+                        <button onClick={props.onDelete}>Löschen</button>
+                        <button onClick={props.onMove}>Verschieben</button>
+                    </RowComp>
                 </div>
             }
             {
@@ -304,11 +308,17 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
                         </>
                         :
                         <>
-                            <h3>{entry?.header} {entry?.ms != null ? ' - ' + formatDate(new Date(entry?.ms)) : ''}</h3>
+                            <h2>{entry?.header} {entry?.ms != null ? ' - ' + formatDate(new Date(entry?.ms)) : ''}</h2>
                         </>
             }
-
             {
+                !props.admin && entry?.imgData != null &&
+                <div>
+                    <img src={entry?.imgData} alt='Bild' />
+                </div>
+            }
+
+            {/* {
                 entry?.imgData != null &&
                 <div className={styles.imgDiv}>
                     <img src={entry?.imgData} alt='Bild' className={styles.img} />
@@ -321,12 +331,14 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
                         props.onImgChanged(null);
                     }}>Bild entfernen</button>
                 </div>
-            }
+            } */}
             {
                 props.admin && (
                     <div>
-                        <label className={styles.imgUploadLabel} htmlFor={`${props.idx}-uploadImg`}>Bild hochladen ...</label>
-                        <input id={`${props.idx}-uploadImg`} type='file' onChange={async (e) => {
+                        {/* <label className={styles.imgUploadLabel} htmlFor={`${props.idx}-uploadImg`}>Bild hochladen ...</label> */}
+                        <ImgInputComp id='img' label='Optionales Bild' value={entry?.imgData ?? null} onChange={props.onImgChanged} />
+
+                        {/* <input id={`${props.idx}-uploadImg`} type='file' onChange={async (e) => {
                             const files = e.target.files;
                             if (files != null && files.length >= 1) {
                                 const file: File | null = files.item(0)
@@ -339,7 +351,7 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
                                 const newImg = await resizeImage(file, 400)
                                 props.onImgChanged(newImg);
                             }
-                        }} name='name' />
+                        }} name='name' /> */}
                     </div>
                 )
             }
@@ -361,9 +373,8 @@ const FeedEntryComp = forwardRef<HTMLInputElement | null, FeedEntryProps>(functi
                     />
                     :
                     <EntryBodyComp body={entry?.body ?? ''} />
-                // <pre>{entry?.body}</pre>
             }
-        </div>
+        </BoxComp>
     )
 });
 
@@ -401,8 +412,8 @@ function NextBirthday(props: NextBirthdayProps) {
     const setEditedText = props.setEditedText;
     const nextBirthday = findNextBirthday(props.today, feedData);
     return (
-        <div className={`${styles.entry}`}>
-            <h3>Nächster Geburtstag</h3>
+        <BoxComp>
+            <h2>Nächster Geburtstag</h2>
             {nextBirthday?.idx != null && (
                 <table>
                     <tbody>
@@ -422,7 +433,7 @@ function NextBirthday(props: NextBirthdayProps) {
                     </tbody>
                 </table>
             )}
-        </div>
+        </BoxComp>
     )
 }
 
@@ -474,11 +485,11 @@ async function loadFeedData(id: string, passwd: string, signal?: AbortSignal): P
             error: `Unexpected id: ${JSON.stringify(id)}`
         }
     }
-    // console.log('fetchFeed: url=', url);
     const body: LoadFeedDataReq = {
         id: id,
         passwd: passwd
     }
+    console.log('fetchFeed: url=', url, 'body', body);
     return await myFetchPost<LoadFeedDataReq, LoadFeedDataResp>(url, body, signal);
 
 }
@@ -529,10 +540,12 @@ interface MoveDialogProps {
 function MoveDialog({ onUp, onDown, onFinish, onCancel }: MoveDialogProps) {
     return (
         <div className={styles.moveDialog}>
-            <button className={styles.button} onClick={onUp}>Hoch</button>
-            <button className={styles.button} onClick={onDown}>Runter</button>
-            <button className={styles.button} onClick={onFinish}>Fertig</button>
-            <button className={styles.button} onClick={onCancel}>Abbrechen</button>
+            <RowComp>
+                <button onClick={onUp}>Hoch</button>
+                <button onClick={onDown}>Runter</button>
+                <button onClick={onFinish}>Fertig</button>
+                <button onClick={onCancel}>Abbrechen</button>
+            </RowComp>
         </div>
     )
 }
@@ -561,14 +574,15 @@ interface FeedCompProps {
     onNotesChange?: (feedId: string, newNotes: string) => void;
     onNotesKeyDown?: () => void;
     notesHint?: string;
+    dirtyData?: FeedData;
 }
 
-export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNotesChange, onNotesKeyDown, notesHint }: FeedCompProps) {
+export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNotesChange, onNotesKeyDown, notesHint, dirtyData }: FeedCompProps) {
     const [state, setState] = useState<State>({
-        feedData: null,
+        feedData: dirtyData ?? null,
         editState: {
             type: 'none',
-            dirty: false,
+            dirty: dirtyData != null,
         }
     })
     const [usedSpace, setUsedSpace] = useState<number>(0);
@@ -602,88 +616,93 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
     // }
 
     useEffect(() => {
-        console.log('useEffect: admin', admin, 'id', id);
+        console.log('useEffect: admin', admin, 'id', id, 'dirtyData', dirtyData);
         const today1 = new Date();
         // console.log('today1', today1.toLocaleString());
         setToday(today1);
         const abortController = new AbortController();
         abortControllerRef.current = abortController;
 
+        console.log('in effect: state.feedData:', state.feedData);
         // console.log('typeof(localStorage)', typeof (localStorage));
 
         if (admin) {
-            const passwd = organizePasswd(id);
-            if (passwd == null) return;
+            if (dirtyData == null) {
+                console.log('useEffect: in if');
+                const passwd = organizePasswd(id);
+                if (passwd == null) return;
 
-            ///////
-            loadFeedData(id, passwd, abortController.signal).then(j => {
-                if (abortController.signal.aborted) {
-                    return;
-                }
-                switch (j.type) {
-                    case 'error':
-                        handleError(j.error);
-                        if (onNotFound != null) {
-                            onNotFound();
-                        }
+                ///////
+                loadFeedData(id, passwd, abortController.signal).then(j => {
+                    if (abortController.signal.aborted) {
                         return;
-                    case 'notFound':
-                        alert('Feed mit dieser ID nicht gefunden!')
-                        if (onNotFound != null) {
-                            onNotFound();
-                        }
-                        return;
-                    case 'success':
-                        try {
-                            localStorage.setItem('feed', JSON.stringify(j.feedData));
-                        } catch (reason) {
-                            console.log(reason);
-                        }
-                        setUsedSpace(localStorage.length);
-                        setState(s => ({
-                            ...s,
-                            feedData: j.feedData
-                        }));
-                        return;
-                    case 'wrongPasswd':
-                        alert('Falsches Passwort!');
-                        localStorage.removeItem('passwd');
-                        if (onNotFound != null) {
-                            onNotFound();
-                        }
-                        return;
-                }
-            }).catch(reason => {
-                if (abortControllerRef.current?.signal.aborted) return;
-                alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
-            })
-            ///////
+                    }
+                    switch (j.type) {
+                        case 'error':
+                            handleError(j.error);
+                            if (onNotFound != null) {
+                                onNotFound();
+                            }
+                            return;
+                        case 'notFound':
+                            alert('Feed mit dieser ID nicht gefunden!')
+                            if (onNotFound != null) {
+                                onNotFound();
+                            }
+                            return;
+                        case 'success':
+                            try {
+                                localStorage.setItem('feed', JSON.stringify(j.feedData));
+                            } catch (reason) {
+                                console.log(reason);
+                            }
+                            setUsedSpace(localStorage.length);
+                            setState(s => ({
+                                ...s,
+                                feedData: j.feedData
+                            }));
+                            return;
+                        case 'wrongPasswd':
+                            alert('Falsches Passwort!');
+                            localStorage.removeItem('passwd');
+                            if (onNotFound != null) {
+                                onNotFound();
+                            }
+                            return;
+                    }
+                }).catch(reason => {
+                    if (abortController.signal.aborted) return;
+                    alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
+                })
+                ///////
 
-            // loadFeedData(id, passwd, abortController.signal).then(feed => {
-            //     if (abortController.signal.aborted) return;
-            //     if (feed == null) {
-            //         console.log('alerting in "start effect"');
-            //         alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}" Tippfehler?`)
-            //         setState(s => ({
-            //             ...s,
-            //             feedData: null
-            //         }))
-            //         if (onNotFound != null) {
-            //             onNotFound();
-            //         }
-            //         return;
-            //     }
-            //     try {
-            //         localStorage.setItem('feed', JSON.stringify(feed));
-            //     } catch (reason) {
-            //         console.log(reason);
-            //     }
-            //     setUsedSpace(localStorage.length);
-            //     setState(s => ({
-            //         ...s,
-            //         feedData: feed
-            //     }));
-            // })
+                // loadFeedData(id, passwd, abortController.signal).then(feed => {
+                //     if (abortController.signal.aborted) return;
+                //     if (feed == null) {
+                //         console.log('alerting in "start effect"');
+                //         alert(`Es wurde kein Feed mit folgender ID gefunden: "${id}" Tippfehler?`)
+                //         setState(s => ({
+                //             ...s,
+                //             feedData: null
+                //         }))
+                //         if (onNotFound != null) {
+                //             onNotFound();
+                //         }
+                //         return;
+                //     }
+                //     try {
+                //         localStorage.setItem('feed', JSON.stringify(feed));
+                //     } catch (reason) {
+                //         console.log(reason);
+                //     }
+                //     setUsedSpace(localStorage.length);
+                //     setState(s => ({
+                //         ...s,
+                //         feedData: feed
+                //     }));
+                // })
+
+            }
         } else if (typeof (localStorage) !== 'undefined') {
             const feedJson = localStorage.getItem('feed');
             // console.log('feedJson1', feedJson);
@@ -753,7 +772,7 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
         }
     },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [admin, id, onNotFound]
+        [admin, id, onNotFound, dirtyData]
     )
 
     function handleError(error: string) {
@@ -765,7 +784,9 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
 
         const passwd = organizePasswd(id);
         if (passwd == null) return;
-        loadFeedData(id, passwd, abortControllerRef.current?.signal).then(j => {
+        const signal = abortControllerRef.current?.signal;
+        loadFeedData(id, passwd, signal).then(j => {
+            if (signal?.aborted) return;
             switch (j.type) {
                 case 'error':
                     handleError(j.error);
@@ -779,7 +800,6 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                             dirty: false
                         }
                     })
-                    startSetup();
                     break;
                 case 'wrongPasswd':
                     alert(`Falsches Passwort für Feed "${id}"!`);
@@ -811,9 +831,7 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                     break;
             }
         }).catch(reason => {
-            if (abortControllerRef.current?.signal.aborted) {
-                return;
-            }
+            if (signal?.aborted) return;
             alert('Unerwarteter Fehler: ' + JSON.stringify(reason));
         })
 
@@ -848,13 +866,13 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
 
     function Today() {
         return (
-            <div className={`${styles.entry}`}>
+            <BoxComp>
                 {
                     today != null ?
-                        <h3>Heute: {formatWeekdayDe(today?.getDay())}, der {today?.toLocaleString()}</h3>
+                        <h2>Heute: {formatWeekdayDe(today?.getDay())}, der {today?.toLocaleString()}</h2>
                         : <span>Lade Daten ...</span>
                 }
-            </div>
+            </BoxComp>
         )
     }
 
@@ -961,7 +979,7 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                             }
                         })
                         const ms = feedData.feedEntries[editState.idx].ms;
-                        setEditedText(ms == null ? '' : new Date(ms).toJSON());
+                        setEditedText(ms == null || isNaN(ms) ? new Date().toJSON() : new Date(ms).toJSON());
                         break;
                     case 'date':
                         setState({
@@ -1237,7 +1255,7 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
     const editState = state.editState;
     const feedData = state.feedData;
 
-    return (
+    const res = (
         <div className={styles.feedComp}>
             {
                 state.editState.type === 'moveEntry' &&
@@ -1245,22 +1263,22 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
             }
             {
                 editState.dirty &&
-                <div className={styles.saveDiv}>
-                    <button onClick={onSaveClicked}>Auf dem Server speichern</button>
-                </div>
+                <RowComp>
+                    <button onClick={onSaveClicked}>Änderungen speichern</button>
+                </RowComp>
             }
             <h1>Infos {feedData?.name}</h1>
             {
-                admin && <button onClick={onFeedRename}>Feed umbenennen</button>
+                admin && <RowComp><button onClick={onFeedRename}>Feed umbenennen</button></RowComp>
             }
             <Today />
             <NextBirthday admin={admin ?? false} feedData={feedData} editState={editState} editedText={editedText} setEditedText={setEditedText} today={today} />
             {
                 feedData != null &&
-                <NotesComp entryClass={styles.entry} feedId={id} />
+                <NotesComp entryClass='' feedId={id} />
             }
             {
-                admin && <button id='addEntryButton' onClick={onAddEntry}>Eintrag hinzufügen</button>
+                admin && <RowComp><button id='addEntryButton' onClick={onAddEntry}>Eintrag hinzufügen</button></RowComp>
             }
 
             {
@@ -1315,9 +1333,8 @@ export default function FeedComp({ id, admin, onNotFound, onAbort, onSave, onNot
                 onEdit={onBirthdayEdit}
                 onDelete={onBirthdayDelete}
             />
-            <div className={styles.remainingSpace}>
-                Used space: {usedSpace}
-            </div>
         </div>
     )
+
+    return res;
 }

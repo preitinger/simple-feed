@@ -1,0 +1,44 @@
+.row {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.row > * {
+    margin: 1rem;
+}
+
+.row button, .row label {
+    border: 1px solid darkgray;
+    border-radius: 1em;
+    padding: 6px 12px;
+    background-color: lightgray;
+    cursor: pointer;
+    font: inherit;
+}
+
+.row label {
+    display: inline-block;
+    position: relative;
+}
+
+.row label input[type="file"] {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+.row label input[type="file"] * {
+    cursor: pointer !important;
+}
+.row label:focus-within, .row label:hover, .row button:focus-within, .row button:hover {
+    outline: 3px solid black;
+}
+
+
+/* .row input {
+    margin: 1rem;
+} */

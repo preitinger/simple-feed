@@ -32,23 +32,27 @@ export async function loadFeedData(req: LoadFeedDataReq): Promise<LoadFeedDataRe
         }));
 
         if (x == null) {
+            // console.log('loadFeedData in notFound');
             return ({
                 type: 'notFound'
             })
         }
 
         if (transformPasswd('editor', req.passwd) !== x?.passwd) {
+            // console.log('loadFeedData in wrongPasswd');
             return ({
                 type: 'wrongPasswd'
             })
         }
 
+        // console.log('loadFeedData in success');
         return ({
                 type: 'success',
                 feedData: x.data
             })
     } catch (reason) {
         console.warn('caught in loadFeedData:', reason);
+        // console.log('loadFeedData in catch');
         return {
             type: 'error',
             error: JSON.stringify(reason)
@@ -176,11 +180,12 @@ export async function editFinish(req: EditFinishReq): Promise<EditFinishResp> {
     const passwd = req.passwd;
 
     while (--tries >= 0) {
-        const findRes = await col.findOne<{ data: FeedData; version: number; feedArchive: FeedData[] }>({
+        const findRes = await col.findOne<{ data: FeedData; version: number; passwd: string; feedArchive: FeedData[] }>({
             _id: feedData._id
         }, {
             projection: {
                 data: 1,
+                passwd: 1,
                 version: 1,
                 feedArchive: 1,
             }
@@ -193,6 +198,14 @@ export async function editFinish(req: EditFinishReq): Promise<EditFinishResp> {
             }
         }
 
+        const transformedPasswd = transformPasswd('editor', passwd);
+
+        if (transformedPasswd !== findRes.passwd) {
+            return {
+                type: 'wrongPasswd'
+            }
+        }
+
         const oldFeedData = findRes.data;
         const oldFeedArchive = findRes.feedArchive;
         const newFeedArchive = oldFeedArchive.length >= 8
@@ -201,7 +214,7 @@ export async function editFinish(req: EditFinishReq): Promise<EditFinishResp> {
 
         const updateRes = await col.updateOne({
             _id: feedData._id,
-            passwd: transformPasswd('editor', passwd),
+            passwd: transformedPasswd,
             version: findRes.version
         }, {
             $set: {

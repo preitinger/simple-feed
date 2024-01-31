@@ -1,87 +1,28 @@
-.entry {
-    display: flex;
-    flex-direction: column;
-    background-color: rgb(255, 251, 201);
-    border-radius: 1em;
+.feedComp {
+    
 }
 
-@media (min-width: 450px) {
-    .entry {
-        margin: 2em;
-        border:1px solid black;
-    }
+.birthdayDate {}
+
+.birthdayName {
+    padding-left: 3ex;
 }
 
-@media (max-width: 449px) {
-    .entry {
-        margin: 2em 0;
-        /* border-bottom: 1px solid black; */
-    }
-}
-
-.entryMoving {
-    background-color: rgb(241, 207, 142);
-}
-
-.birthdayDate {
-    text-align: left;
-    padding-right: 3ex;
-}
-
-.saveDiv {
+.floatRight {
     float: right;
-    margin-top: 1em;
-    margin-right: 1em;
 }
 
 .moveDialog {
+    display: block;
     position: fixed;
-    right: 1em;
-    top: calc(50vh - 50px);
+    top: 50%;
     width: auto;
     height: auto;
-    border:4px inset;
-    opacity: 1;
-    background: rgb(235, 194, 209);
-    display: flex;
-    flex-direction: column;
-}
-.feedComp button {
-    border-radius: 1em;
-    border: 1px solid darkgray;
-    padding: 0.5em 1em;
-    cursor: pointer;
-    font-size: large;
-    margin-left: 2em;
-    background-color: lightgray;
-}
-.imgUploadLabel {
-    border: 1px solid #ccc;
-    border-radius: 1em;
-    display: inline-block;
-    padding: 6px 12px;
-    cursor: pointer;
-    background-color: lightgray;
-    border: 1px solid darkgray;
-}
-.feedComp input[type="file"] {
-    display: none;
-}
-.button {
-    display: block;
-    margin: 1em;
-    padding: 1em;
-    cursor: pointer;
-}
-.testBorder {
-    border: 1px solid red;
-}
-.remainingSpace {
-    font-size: small;
-    color: gray;
+    right: 2rem;
+    border: 1px solid black;
+    border-radius: 1rem;
+    padding: 1rem;
+    background-color: gray;
 }
 
-.imgDiv {
-    display: flex;
-    align-self: center;
-}
+.topRight {}

@@ -1,5 +1,6 @@
 import FeedData, { LoadFeedDataReq, LoadFeedDataResp } from "@/app/_lib/FeedData";
 import { loadFeedData } from "@/app/_lib/FeedDataForServer";
+import { MyResp } from "@/app/_lib/apiRoutes";
 import { myPOST } from "@/app/_lib/apiRoutesForServer";
 import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
@@ -21,6 +22,9 @@ interface Params {
 
 // instead of GET i use POST which is never cached:
 
-export async function POST(req: NextRequest) {
-    return myPOST<LoadFeedDataReq, LoadFeedDataResp>(req, loadFeedData);;
+export async function POST(req: NextRequest): Promise<NextResponse<MyResp<LoadFeedDataResp>>> {
+    // console.log('POST for /api/feed/load');
+    const res = await myPOST<LoadFeedDataReq, LoadFeedDataResp>(req, loadFeedData);
+    // console.log('/api/feed/load returning: ', res);
+    return res;
 }

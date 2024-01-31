@@ -7,6 +7,7 @@ import { AddFeedReq, AddFeedResp } from "../_lib/admin/addFeed";
 import { EditStartReq, EditStartResp } from "../_lib/admin/editStart";
 import { EditFinishReq, EditFinishResp } from "../_lib/admin/editFinish";
 import { myFetchPost } from "../_lib/apiRoutes";
+import RowComp from "../_components/RowComp";
 
 type AdminState = {
     type: 'deciding'
@@ -14,6 +15,10 @@ type AdminState = {
     type: 'startingEdit'
 } | {
     type: 'editing';
+    editedId: string;
+    data: FeedData;
+} | {
+    type: 'repeatEditing';
     editedId: string;
     data: FeedData;
 } | {
@@ -160,14 +165,14 @@ export default function Admin() {
             <h1>Administrate simple feed(s)</h1>
             {
                 adminState.type === 'deciding' &&
-                <div>
+                <RowComp>
                     <button onClick={onAdd}>Add new feed</button>
                     <button onClick={onEdit}>Edit existing feed</button>
-                </div>
+                </RowComp>
             }
             {
-                adminState.type === 'editing' &&
-                <FeedComp admin={true} id={adminState.editedId} onNotFound={() => {
+                (adminState.type === 'editing' || adminState.type === 'repeatEditing') &&
+                <FeedComp admin={true} id={adminState.editedId} dirtyData={adminState.type === 'repeatEditing' ? adminState.data : undefined} onNotFound={() => {
                     setAdminState({
                         type: 'deciding'
                     });
@@ -176,10 +181,19 @@ export default function Admin() {
                         type: 'deciding'
                     })
                 }} onSave={(feedData) => {
-                    if (adminState.type !== 'editing') return;
+                    console.log('onSave()')
+                    if (adminState.type !== 'editing' && adminState.type !== 'repeatEditing') return;
                     const saveLoop = () => {
                         const passwd = prompt('Passwort für ' + feedData._id);
-                        if (passwd == null) return;
+                        if (passwd == null) {
+                            console.log('saveLoop: passwd null')
+                            setAdminState({
+                                data: feedData,
+                                editedId: feedData._id,
+                                type: 'repeatEditing',
+                            })
+                            return;
+                        }
 
                         const editFinishReq: EditFinishReq = {
                             feedData: feedData,

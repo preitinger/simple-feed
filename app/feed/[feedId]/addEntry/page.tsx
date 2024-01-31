@@ -15,16 +15,18 @@ export default function Page({ params }: { params: { feedId: string } }) {
     const [passwd, setPasswd] = useState<string>('');
     const router = useRouter();
 
+    const feedId = decodeURIComponent(params.feedId);
+
     function onSend() {
         const req: AddEntryReq = {
-            id: params.feedId,
+            id: feedId,
             passwd: passwd,
             header: header,
             imgData: imgData,
             body: body
         }
         myFetchPost<AddEntryReq, AddEntryResp>(`/api/admin/addEntry`, req).then((resp) => {
-            const key = `addingFeed-${params.feedId}`;
+            const key = `addingFeed-${feedId}`;
 
             switch (resp.type) {
                 case 'success':
@@ -35,7 +37,7 @@ export default function Page({ params }: { params: { feedId: string } }) {
                     localStorage.removeItem(key);
                     break;
                 case 'adminActive':
-                    alert(`Der Eintrag kann gerade nicht hinzugefügt werden, da der Feed ${params.feedId} gerade gewartet wird.`);
+                    alert(`Der Eintrag kann gerade nicht hinzugefügt werden, da der Feed ${feedId} gerade gewartet wird.`);
                     localStorage.setItem(key, JSON.stringify(req));
                     break;
                 case 'error':
@@ -47,7 +49,7 @@ export default function Page({ params }: { params: { feedId: string } }) {
     }
 
     useEffect(() => {
-        const reqStr = localStorage.getItem(`addingFeed-${params.feedId}`);
+        const reqStr = localStorage.getItem(`addingFeed-${feedId}`);
         if (reqStr != null) {
             const req = JSON.parse(reqStr);
             setPasswd(req.passwd);
@@ -55,15 +57,15 @@ export default function Page({ params }: { params: { feedId: string } }) {
             setImgData(req.imgData);
             setBody(req.body);
         }
-    }, [params.feedId]);
+    }, [feedId]);
 
     return (
         <div className={styles.main}>
-            <h1>Neuer Eintrag für Feed {'"'}{params.feedId}{'"'}</h1>
+            <h1>Neuer Eintrag für Feed {'"'}{feedId}{'"'}</h1>
             <TextInputComp id='header' label='Überschrift' value={header} onChange={setHeader} />
             <ImgInputComp id='img' label='Optionales Bild' value={imgData} onChange={setImgData} />
             <TextInputComp id='body' label='Textkörper' value={body} onChange={setBody} area={true} />
-            <TextInputComp id='passwd' type='password' label={`Passwort für "${params.feedId}"`} value={passwd} onChange={setPasswd} />
+            <TextInputComp id='passwd' type='password' label={`Passwort für "${feedId}"`} value={passwd} onChange={setPasswd} />
             <div>
                 <button onClick={onSend}>Senden</button>
             </div>

@@ -4,6 +4,7 @@ import { LoadNotesReq, LoadNotesResp, UpdateNotesReq, UpdateNotesResp } from '..
 import { MyResp, myFetchPost } from '../_lib/apiRoutes';
 import { deepEqual } from 'assert';
 import { isDeepStrictEqual } from 'util';
+import BoxComp from './BoxComp';
 
 export interface NotesProps {
     entryClass: string;
@@ -163,7 +164,7 @@ export default function NotesComp(props: NotesProps) {
                         return;
                     }
                 }
-    
+
             }
         }
         myFetchPost<LoadNotesReq, LoadNotesResp>('/api/notes/load', req, abortController.signal)
@@ -268,20 +269,20 @@ export default function NotesComp(props: NotesProps) {
     }
 
     return (
-        <div className={`${props.entryClass} ${styles.notesContainer}`}>
-            <h3>Eigene Notizen</h3>
+        <BoxComp>
+            <h2>Eigene Notizen</h2>
             {loading && <span>Versuche, Notizen vom Server zu laden ...</span>}
             <textarea value={notes} readOnly={loading} className={styles.notes} onChange={(e) => {
                 const newNotes = e.target.value;
                 onChange(newNotes);
             }} onKeyDown={onKeyDown} />
             {
-                <div className={styles.dirtyHint}>
+                <p className={styles.dirtyHint}>
                     {
                         <span>{hint}</span>
                     }
-                </div>
+                </p>
             }
-        </div>
+        </BoxComp>
     )
 }

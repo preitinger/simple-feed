@@ -7,8 +7,8 @@ import styles from './page.module.css';
 import simpleFeedVersion from "../../_lib/simpleFeedVersion";
 
 export default function Page({ params }: { params: { feedId: string } }) {
-
     const router = useRouter();
+    const feedId = decodeURIComponent(params.feedId);
 
     function onRepair() {
         localStorage.clear();
@@ -21,7 +21,7 @@ export default function Page({ params }: { params: { feedId: string } }) {
             <div className={styles.topRight}>
                 v{simpleFeedVersion} <button onClick={onRepair}>Repair</button>
             </div>
-            <FeedComp id={params.feedId} />
+            <FeedComp id={feedId} />
 
         </div>
     );

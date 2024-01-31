@@ -18,6 +18,8 @@ export async function myPOST<MyReq, MySuccessResp>(request: NextRequest, executo
 
     try {
         const mySuccessResp = await executor(myReq);
+        // console.log('length of stringified response: ', JSON.stringify(mySuccessResp).length);
+        // console.log('returning result from executor: ', JSON.stringify(mySuccessResp));
         return NextResponse.json(mySuccessResp);
     } catch (reason) {
         console.error('caught in executor: ', reason);
