@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import styles from './ImgInputComp.module.css'
 import { resizeImage } from '@/app/_lib/image';
 import RowComp from './RowComp';

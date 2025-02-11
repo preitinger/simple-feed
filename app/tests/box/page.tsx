@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import BoxComp from "@/app/_components/BoxComp";
@@ -10,7 +11,7 @@ export default function Page() {
         <BoxComp>
             <h2>Header</h2>
             <div>
-                <img src='/icon-512x512.png' />
+                <img src='/icon-512x512.png' alt='image input' />
 
             </div>
             <p>1. bla bla</p>
